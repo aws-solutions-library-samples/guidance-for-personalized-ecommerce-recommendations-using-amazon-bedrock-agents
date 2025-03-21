@@ -118,7 +118,7 @@ The solution only be **VERIFIED** in **us-east-1** region.
 
 1. Clone the repository to your environment, set up a virtual environment and activate it , download related data and install required Python packages using below code:
 ```bash
-git clone GITHUB_URL
+git clone https://github.com/aws-solutions-library-samples/guidance-for-personalized-ecommerce-recommendations-using-amazon-bedrock-agents
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
