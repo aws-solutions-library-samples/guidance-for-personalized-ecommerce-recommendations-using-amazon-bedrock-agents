@@ -1,4 +1,4 @@
-# Guidance for building Sales Agent on Amazon Bedrock
+# Guidance for Personalized Ecommerce Recommendations Using Amazon Bedrock Agents
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@
 The Sales Agent on Bedrock draws inspiration from the Rufus Sales Agent, which enhances the shopping experience on Amazon.com. Leveraging cutting-edge generative AI, this solution is designed to deliver personalized and dynamic interactions that drive product discovery and sales. By integrating Amazon Personalize, the Sales Agent provides tailored product recommendations, while Amazon OpenSearch Service enables rapid and accurate search capabilities across your catalog. Together, these technologies create a seamless and engaging customer journey, boosting conversions and satisfaction. The Sales Agent empowers businesses to harness Amazon’s proven AI expertise, transforming their apps and websites into highly effective sales channels.
 
 The architecture of Sales Agent Rufus on Bedrock is illustrated below:
-![alt text](sales-agent/assets/images/architecture.png)
+![alt text](assets/images/architecture.png)
 
 
 ### Cost
@@ -119,7 +119,6 @@ The solution only be **VERIFIED** in **us-east-1** region.
 1. Clone the repository to your environment, set up a virtual environment and activate it , download related data and install required Python packages using below code:
 ```bash
 git clone GITHUB_URL
-cd sales-agent
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
