@@ -1,0 +1,163 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "User and Product Information API",
+      "description": "This API provides functionalities to retrieve and compare user and product information based on specified criteria. It supports operations to search products, compare them, and generate personalized recommendations.",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/searchProduct": {
+        "post": {
+          "description": "Allows searching for products based on a specified condition, which defines customer requirements for the product.",
+          "parameters": [
+            {
+              "name": "condition",
+              "in": "query",
+              "description": "A query parameter that specifies the condition or criteria for the product search.",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Returns detailed product information if the search is successful.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/product-information"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/compareProduct": {
+        "post": {
+          "description": "Compares products based on user input, which includes user ID, product search condition, and user preferences.",
+          "parameters": [
+            {
+              "name": "user_id",
+              "in": "query",
+              "description": "The unique identifier of the user initiating the product comparison.",
+              "required": true,
+              "schema": {
+                "type": "number"
+              }
+            },
+            {
+              "name": "condition",
+              "in": "query",
+              "description": "The search condition or criteria used to find products to compare.",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "preference",
+              "in": "query",
+              "description": "Specifies the user's preferences to tailor the product comparison results.",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Provides a comparison summary and detailed product information based on user input.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/compare-product-information"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/getRecommendation": {
+        "post": {
+          "description": "Generates personalized product recommendations for a user based on their ID and preferences.",
+          "parameters": [
+            {
+              "name": "user_id",
+              "in": "query",
+              "description": "The unique identifier of the user for whom the recommendations are being generated.",
+              "required": true,
+              "schema": {
+                "type": "number"
+              }
+            },
+            {
+              "name": "preference",
+              "in": "query",
+              "description": "The preferences of the user, which guide the recommendation algorithm to provide tailored results.",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Returns personalized product recommendations as a response to the user's query.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/compare-product-information"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "product-information": {
+          "type": "object",
+          "properties": {
+            "item_id": {
+              "type": "string",
+              "description": "The unique identifier for the product."
+            },
+            "score": {
+              "type": "number",
+              "format": "float",
+              "description": "A numerical score representing the product's rating or quality."
+            },
+            "price": {
+              "type": "string",
+              "description": "The price of the product."
+            },
+            "style": {
+              "type": "string",
+              "description": "The style category or description of the product."
+            },
+            "image": {
+              "type": "string",
+              "description": "A URL or base64 encoded string representing the product image."
+            }
+          }
+        },
+        "compare-product-information": {
+          "type": "object",
+          "properties": {
+            "summarize": {
+              "type": "string",
+              "description": "A brief summary of the product comparison results."
+            },
+            "items": {
+              "$ref": "#/components/schemas/product-information"
+            }
+          }
+        }
+      }
+    }
+  }
