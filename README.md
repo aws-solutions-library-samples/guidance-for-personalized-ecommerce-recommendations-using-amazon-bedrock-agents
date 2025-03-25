@@ -116,7 +116,17 @@ The solution only be **VERIFIED** in **us-east-1** region.
 
 ## Deployment Steps
 
-1. Clone the repository to your environment, set up a virtual environment and activate it , download related data and install required Python packages using below code:
+1. Create Lambda layer and publish to AWS Lambda layer version which name is opensearch-layer.
+```
+mkdir -p python
+cd python                                                                                                                                    
+pip install opensearch-py -t .
+cd ..
+zip -r opensearch-layer.zip python
+aws lambda publish-layer-version --layer-name opensearch-layer --zip-file fileb://opensearch-layer.zip --compatible-runtimes python3.9 --region us-east-1
+```
+
+2. Clone the repository to your environment, set up a virtual environment and activate it , download related data and install required Python packages using below code:
 ```bash
 git clone https://github.com/aws-solutions-library-samples/guidance-for-personalized-ecommerce-recommendations-using-amazon-bedrock-agents
 python3 -m venv .venv
@@ -124,7 +134,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. CDK Deploymant
+3. CDK Deploymant
 
 ```bash
 cdk deploy
