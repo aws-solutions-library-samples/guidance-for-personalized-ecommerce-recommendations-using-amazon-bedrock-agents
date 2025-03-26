@@ -123,6 +123,7 @@ cd python
 pip install opensearch-py -t .
 cd ..
 zip -r opensearch-layer.zip python
+mkdir -p lambda/layer
 mv opensearh-layer.zip lambda/layer/opensearh-layer.zip
 ```
 
