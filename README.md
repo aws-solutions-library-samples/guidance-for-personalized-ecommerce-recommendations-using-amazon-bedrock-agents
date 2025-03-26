@@ -123,7 +123,7 @@ cd python
 pip install opensearch-py -t .
 cd ..
 zip -r opensearch-layer.zip python
-aws lambda publish-layer-version --layer-name opensearch-layer --zip-file fileb://opensearch-layer.zip --compatible-runtimes python3.9 --region us-east-1
+mv opensearh-layer.zip lambda/layer/opensearh-layer.zip
 ```
 
 2. Clone the repository to your environment, set up a virtual environment and activate it , download related data and install required Python packages using below code:
