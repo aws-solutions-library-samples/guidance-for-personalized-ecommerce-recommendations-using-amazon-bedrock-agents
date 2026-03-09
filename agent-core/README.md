@@ -889,17 +889,8 @@ Run property tests:
 pytest tests/property/ -v
 ```
 
-## License
-
-[Your License Here]
-
 ## Contributing
 
-[Your Contributing Guidelines Here]
-
-## Support
-
-For issues and questions:
-- GitHub Issues: [Your Repository Issues URL]
-- Documentation: [Your Documentation URL]
-- AWS Support: [AWS Support URL]
+Ray Wang, Sr. Solutions Architect, AWS
+Paul Lu, Sr. Solutions Architect, AWS
+David Hung, Technical Account Manager, AWS
