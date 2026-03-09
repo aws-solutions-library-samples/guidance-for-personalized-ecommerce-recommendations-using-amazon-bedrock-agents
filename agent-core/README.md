@@ -891,6 +891,6 @@ pytest tests/property/ -v
 
 ## Contributing
 
-Ray Wang, Sr. Solutions Architect, AWS
-Paul Lu, Sr. Solutions Architect, AWS
-David Hung, Technical Account Manager, AWS
+- Ray Wang, Sr. Solutions Architect, AWS
+- Paul Lu, Sr. Solutions Architect, AWS
+- David Hung, Technical Account Manager, AWS
