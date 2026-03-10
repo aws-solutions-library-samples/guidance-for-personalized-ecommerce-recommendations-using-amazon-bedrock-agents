@@ -55,6 +55,17 @@ class AgentCoreStack(Stack):
             self,
             "AgentCoreSourceAsset",
             path=agent_core_dir,
+            exclude=[
+                ".venv",
+                "__pycache__",
+                "*.pyc",
+                ".env",
+                "cdk-outputs.json",
+                "cdk.out",
+                "tests",
+                ".cdkignore",
+                "deploy.sh",
+            ],
         )
 
         # --- 3. CodeBuild Project — ARM64 native Docker build ---
@@ -151,7 +162,7 @@ class AgentCoreStack(Stack):
                     container_uri=f"{ecr_repo.repository_uri}:latest",
                 ),
             ),
-            agent_runtime_name="agentcore-sales-agent",
+            agent_runtime_name="agentcore_sales_agent",
             network_configuration=bedrockagentcore.CfnRuntime.NetworkConfigurationProperty(
                 **network_config,
             ),

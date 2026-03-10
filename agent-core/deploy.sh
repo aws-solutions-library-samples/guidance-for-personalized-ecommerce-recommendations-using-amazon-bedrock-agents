@@ -19,6 +19,7 @@ NETWORK_MODE=""
 SUBNETS=""
 SECURITY_GROUPS=""
 REGION=""
+PROFILE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -52,6 +53,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --region)
             REGION="$2"
+            shift 2
+            ;;
+        --profile)
+            PROFILE="$2"
             shift 2
             ;;
         *)
@@ -101,6 +106,12 @@ if [[ -n "$REGION" ]]; then
     REGION_ARGS="--region $REGION"
 fi
 
+PROFILE_ARGS=""
+if [[ -n "$PROFILE" ]]; then
+    PROFILE_ARGS="--profile $PROFILE"
+    export AWS_PROFILE="$PROFILE"
+fi
+
 # Deploy CDK stack
 echo "Deploying AgentCoreStack..."
 echo "  AOSS Endpoint: $AOSS_ENDPOINT"
@@ -109,7 +120,8 @@ if ! cdk deploy AgentCoreStack \
     --outputs-file cdk-outputs.json \
     --require-approval never \
     $CDK_CONTEXT_ARGS \
-    $REGION_ARGS; then
+    $REGION_ARGS \
+    $PROFILE_ARGS; then
     echo "Error: CDK deployment failed"
     exit 1
 fi

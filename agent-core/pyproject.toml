@@ -1,0 +1,33 @@
+[project]
+name = "agentcore-sales-agent"
+version = "0.1.0"
+description = "AgentCore Sales Agent - Strands Agents SDK powered sales assistant"
+requires-python = ">=3.12"
+dependencies = [
+    "bedrock-agentcore",
+    "strands-agents",
+    "strands-agents-tools",
+    "opensearch-py",
+    "boto3",
+    "requests-aws4auth",
+]
+
+[project.optional-dependencies]
+cdk = [
+    "aws-cdk-lib>=2.220.0",
+    "constructs",
+]
+dev = [
+    "hypothesis>=6.0",
+    "pytest>=8.0",
+    "pytest-mock>=3.0",
+    "moto>=5.0",
+    "pytest-asyncio>=0.23",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

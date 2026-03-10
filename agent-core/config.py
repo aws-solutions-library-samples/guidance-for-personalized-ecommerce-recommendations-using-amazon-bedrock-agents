@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 _DEFAULTS = {
     "item_table_name": "item_table",
     "user_table_name": "user_table",
-    "model_id": "anthropic.claude-sonnet-4-20250514",
+    "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
 }
 
 # Fields that must be present (no default, no None allowed)
@@ -61,16 +61,21 @@ class Config:
 
         # Attempt to load from Parameter Store
         ps_values = _fetch_parameter_store(prefix)
+        logger.info("Parameter Store values: %s", {k: v[:40] for k, v in ps_values.items()})
 
         # Resolve each field: Parameter Store → env var → default
         resolved: dict[str, str | None] = {}
         for field, env_var in _ENV_VAR_MAP.items():
             value = ps_values.get(field)
+            source = "ssm" if value else None
             if value is None:
                 value = os.environ.get(env_var)
+                source = "env" if value else None
             if value is None:
                 value = _DEFAULTS.get(field)
+                source = "default" if value else None
             resolved[field] = value
+            logger.info("Config %s = %s (source: %s)", field, value[:40] if value else None, source)
 
         # Validate required fields
         missing = [f for f in _REQUIRED_FIELDS if not resolved.get(f)]

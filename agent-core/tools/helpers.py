@@ -159,9 +159,13 @@ def create_opensearch_client(config: Config) -> OpenSearch | str:
         or a descriptive error string on failure.
     """
     try:
-        host = (
-            f"{config.aoss_collection_id}.{config.aoss_region}.aoss.amazonaws.com"
-        )
+        # aoss_collection_id may be a full URL or just the collection ID
+        cid = config.aoss_collection_id
+        if cid.startswith("https://"):
+            # Extract hostname from full URL
+            host = cid.replace("https://", "").rstrip("/")
+        else:
+            host = f"{cid}.{config.aoss_region}.aoss.amazonaws.com"
         credentials = boto3.Session().get_credentials()
         auth = AWSV4SignerAuth(credentials, config.aoss_region, "aoss")
         client = OpenSearch(

@@ -6,21 +6,21 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
 
 ## Tasks
 
-- [ ] 1. Scaffold project structure and dependencies
-  - [ ] 1.1 Create `agent-core/pyproject.toml` with project metadata and all dependencies
+- [x] 1. Scaffold project structure and dependencies
+  - [x] 1.1 Create `agent-core/pyproject.toml` with project metadata and all dependencies
     - Runtime deps: `bedrock-agentcore`, `strands-agents`, `strands-agents-tools`, `opensearch-py`, `boto3`, `requests-aws4auth`
     - CDK deps: `aws-cdk-lib>=2.220.0`, `constructs`
     - Dev deps: `hypothesis>=6.0`, `pytest>=8.0`, `pytest-mock>=3.0`, `moto>=5.0`, `pytest-asyncio>=0.23`
     - _Requirements: 1.2, 1.3_
-  - [ ] 1.2 Create `agent-core/.env.example` documenting all environment variables
+  - [x] 1.2 Create `agent-core/.env.example` documenting all environment variables
     - Include: `AOSS_COLLECTION_ID`, `AOSS_REGION`, `RECOMMENDER_ARN`, `ITEM_TABLE_NAME`, `USER_TABLE_NAME`, `MODEL_ID`, `PARAMETER_STORE_PREFIX`, `AGENTCORE_ENDPOINT`
     - _Requirements: 7.7_
-  - [ ] 1.3 Create package init files for `agent-core/tools/__init__.py`, `agent-core/tests/__init__.py`, `agent-core/cdk/__init__.py`, `agent-core/cdk/infra_utils/__init__.py`
+  - [x] 1.3 Create package init files for `agent-core/tools/__init__.py`, `agent-core/tests/__init__.py`, `agent-core/cdk/__init__.py`, `agent-core/cdk/infra_utils/__init__.py`
     - `tools/__init__.py` exports: `search_product`, `compare_product`, `get_recommendation`
     - _Requirements: 1.1_
 
-- [ ] 2. Implement configuration module
-  - [ ] 2.1 Create `agent-core/config.py` with `Config` dataclass and `Config.load()` classmethod
+- [x] 2. Implement configuration module
+  - [x] 2.1 Create `agent-core/config.py` with `Config` dataclass and `Config.load()` classmethod
     - Read `PARAMETER_STORE_PREFIX` env var (default: `/agentcore/sales-agent/`)
     - Call `ssm.get_parameters_by_path(Path=prefix)` to fetch all params in one API call
     - Map parameter names to config fields (e.g., `{prefix}aoss_collection_id` → `aoss_collection_id`)
@@ -40,8 +40,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 7.4, 7.5, 7.6, 13.5, 13.6**
 
-- [ ] 3. Implement shared helper utilities
-  - [ ] 3.1 Create `agent-core/tools/helpers.py` with shared functions ported from `lambda/handler.py`
+- [x] 3. Implement shared helper utilities
+  - [x] 3.1 Create `agent-core/tools/helpers.py` with shared functions ported from `lambda/handler.py`
     - `get_user_info(user_id, config)`: query DynamoDB `user_table` by `USER_ID`, return dict with `user_id`, `age`, `gender`, `visted`, `add_to_cart`, `purchased`; return descriptive error if user not found
     - `get_item_info(item_id, config)`: query DynamoDB `item_table` by `ITEM_ID`, return dict with `item_id`, `title`, `price`, `style`, `image`; return descriptive error if item not found
     - `get_embedding_for_text(text)`: call Bedrock Runtime `invoke_model` with `amazon.titan-embed-image-v1`, return embedding vector; return descriptive error on failure
@@ -55,8 +55,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 5.2, 5.3, 6.3, 6.4**
 
-- [ ] 4. Implement product search tool
-  - [ ] 4.1 Create `agent-core/tools/search_product.py` with `@tool` decorated `search_product(condition: str) -> str`
+- [x] 4. Implement product search tool
+  - [x] 4.1 Create `agent-core/tools/search_product.py` with `@tool` decorated `search_product(condition: str) -> str`
     - Port logic from `lambda/handler.py` `search_product()`
     - Call `get_embedding_for_text(condition)` → Bedrock Titan Embed Image V1
     - Build AOSS host from `config.aoss_collection_id` + `config.aoss_region` + `.aoss.amazonaws.com`
@@ -72,8 +72,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 4.3**
 
-- [ ] 5. Implement product comparison tool
-  - [ ] 5.1 Create `agent-core/tools/compare_product.py` with `@tool` decorated `compare_product(user_id: str, condition: str, preference: str) -> str`
+- [x] 5. Implement product comparison tool
+  - [x] 5.1 Create `agent-core/tools/compare_product.py` with `@tool` decorated `compare_product(user_id: str, condition: str, preference: str) -> str`
     - Port logic from `lambda/handler.py` `compare_product()`
     - Call internal search logic (same as `search_product`) to get matching items
     - Call `get_user_info(user_id)` → DynamoDB `user_table` for age, gender, history
@@ -94,8 +94,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 5.4**
 
-- [ ] 6. Implement recommendation tool
-  - [ ] 6.1 Create `agent-core/tools/get_recommendation.py` with `@tool` decorated `get_recommendation(user_id: str, preference: str) -> str`
+- [x] 6. Implement recommendation tool
+  - [x] 6.1 Create `agent-core/tools/get_recommendation.py` with `@tool` decorated `get_recommendation(user_id: str, preference: str) -> str`
     - Port logic from `lambda/handler.py` `get_recommendation()`
     - Read `config.recommender_arn` — if None, return `"Recommender is not configured. Set RECOMMENDER_ARN."`
     - Call `personalize_runtime.get_recommendations(recommenderArn=..., userId=..., numResults=5)`
@@ -116,11 +116,11 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 6.5**
 
-- [ ] 7. Checkpoint — Core tools complete
+- [x] 7. Checkpoint — Core tools complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement AgentCore entrypoint and Strands Agent
-  - [ ] 8.1 Create `agent-core/agent.py` with `BedrockAgentCoreApp` entrypoint and Strands Agent
+- [x] 8. Implement AgentCore entrypoint and Strands Agent
+  - [x] 8.1 Create `agent-core/agent.py` with `BedrockAgentCoreApp` entrypoint and Strands Agent
     - Import `BedrockAgentCoreApp` from `bedrock_agentcore.runtime`
     - Load `Config` at module level (singleton)
     - Initialize Strands `Agent` with sales expert system prompt (search, compare, recommend, respond in customer's language) and all three tools
@@ -137,28 +137,28 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 2.3, 2.4**
 
-- [ ] 9. Implement error handling property tests
+- [x] 9. Implement error handling property tests
   - [ ]* 9.1 Write property test: Tool error handling returns descriptive messages
     - **Property 8: Tool error handling returns descriptive messages**
     - In `agent-core/tests/test_error_handling.py`: use Hypothesis to generate exception messages, mock external services (OpenSearch, DynamoDB, Bedrock, Personalize) to raise exceptions, assert each tool (`search_product`, `compare_product`, `get_recommendation`) returns a string containing a descriptive error message rather than raising an unhandled exception
     - `@settings(max_examples=100)`
     - **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5, 9.6**
 
-- [ ] 10. Checkpoint — Agent entrypoint and error handling verified
+- [x] 10. Checkpoint — Agent entrypoint and error handling verified
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Implement CDK stack and infrastructure
-  - [ ] 11.1 Create `agent-core/cdk/infra_utils/agentcore_role.py` with AgentCore execution IAM role
+- [x] 11. Implement CDK stack and infrastructure
+  - [x] 11.1 Create `agent-core/cdk/infra_utils/agentcore_role.py` with AgentCore execution IAM role
     - Create function/class that builds an `iam.Role` assumed by `bedrock-agentcore.amazonaws.com`
     - Inline policies: ECR pull (`ecr:BatchGetImage`, `ecr:GetDownloadUrlForLayer`, `ecr:GetAuthorizationToken`), CloudWatch logs (`/aws/bedrock-agentcore/runtimes/*`), X-Ray traces, Bedrock (`bedrock:InvokeModel`, `bedrock:InvokeModelWithResponseStream`), SSM (`ssm:GetParametersByPath` for `/agentcore/sales-agent/*`), DynamoDB (`dynamodb:Query`, `dynamodb:GetItem`), OpenSearch (`aoss:APIAccessAll`), Personalize (`personalize:GetRecommendations`)
     - _Requirements: 10.9_
-  - [ ] 11.2 Create `agent-core/cdk/infra_utils/build_trigger_lambda.py` Lambda handler for CloudFormation custom resource
+  - [x] 11.2 Create `agent-core/cdk/infra_utils/build_trigger_lambda.py` Lambda handler for CloudFormation custom resource
     - On `Create`/`Update`: call `codebuild.start_build(projectName=...)`, poll `batch_get_builds()` until `buildStatus` is `SUCCEEDED` or `FAILED`
     - On `Delete`: no-op
     - Report result via cfn-response callback
     - Timeout: 15 minutes (accommodate Docker build time)
     - _Requirements: 10.10_
-  - [ ] 11.3 Create `agent-core/cdk/agentcore_stack.py` CDK stack with all infrastructure resources
+  - [x] 11.3 Create `agent-core/cdk/agentcore_stack.py` CDK stack with all infrastructure resources
     - ECR repository: `empty_on_delete=True`, `image_scan_on_push=True`, `RemovalPolicy.DESTROY`
     - S3 asset: package `agent-core/` directory for CodeBuild source input
     - CodeBuild project: ARM64 via `LinuxArmBuildImage.AMAZON_LINUX_2_STANDARD_3_0`, `ComputeType.LARGE`, privileged mode, S3 source from asset, inline buildspec via `BuildSpec.from_object()` (NO separate buildspec.yml)
@@ -169,7 +169,7 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - CfnOutputs: `RuntimeArn`, `RuntimeId`, `EcrRepositoryUri`
     - CDK context params: `aoss-endpoint`, `aoss-region`, `item-table-name`, `user-table-name`, `recommender-arn`, `network-mode`, `subnets`, `security-groups`
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.7, 10.8, 10.10, 11.1, 11.2, 11.3, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
-  - [ ] 11.4 Create `agent-core/cdk/app.py` CDK app entry point
+  - [x] 11.4 Create `agent-core/cdk/app.py` CDK app entry point
     - Instantiate `AgentCoreStack` with app context
     - _Requirements: 10.1_
   - [ ]* 11.5 Write property test: CfnRuntime network configuration matches input
@@ -183,8 +183,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 12.5**
 
-- [ ] 12. Implement Dockerfile and requirements.txt
-  - [ ] 12.1 Create `agent-core/Dockerfile` following official AgentCore pattern
+- [x] 12. Implement Dockerfile and requirements.txt
+  - [x] 12.1 Create `agent-core/Dockerfile` following official AgentCore pattern
     - Single-stage `python:3.12-slim` from public ECR
     - Install deps from `requirements.txt` and `aws-opentelemetry-distro==0.10.1`
     - Non-root user `bedrock_agentcore` (uid 1000)
@@ -192,15 +192,15 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - Healthcheck on port 8080 (`/ping`)
     - `CMD ["opentelemetry-instrument", "python", "agent.py"]`
     - _Requirements: 10.6_
-  - [ ] 12.2 Create `agent-core/requirements.txt` for Docker build compatibility
+  - [x] 12.2 Create `agent-core/requirements.txt` for Docker build compatibility
     - Generate from `pyproject.toml` via `uv pip compile pyproject.toml -o requirements.txt`
     - _Requirements: 10.6_
 
-- [ ] 13. Checkpoint — CDK stack and Docker verified
+- [x] 13. Checkpoint — CDK stack and Docker verified
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement deploy script
-  - [ ] 14.1 Create `agent-core/deploy.sh` shell script
+- [x] 14. Implement deploy script
+  - [x] 14.1 Create `agent-core/deploy.sh` shell script
     - `set -euo pipefail` for strict error handling
     - Accept CLI arguments: `--aoss-endpoint` (required), `--item-table`, `--user-table`, `--recommender-arn`, `--network-mode`, `--subnets`, `--security-groups`, `--region`
     - Validate `--aoss-endpoint` is provided (exit with error if missing)
@@ -212,8 +212,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - Exit non-zero with descriptive message on any step failure
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 11.4_
 
-- [ ] 15. Implement Chat CLI
-  - [ ] 15.1 Create `agent-core/chat_cli.py` interactive chat script
+- [x] 15. Implement Chat CLI
+  - [x] 15.1 Create `agent-core/chat_cli.py` interactive chat script
     - Accept `--endpoint` arg or read `AGENTCORE_ENDPOINT` env var (CLI arg takes precedence)
     - Accept optional `--user-id` arg
     - Display welcome message, enter REPL input loop
@@ -234,8 +234,8 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `@settings(max_examples=100)`
     - **Validates: Requirements 15.2**
 
-- [ ] 16. Create README
-  - [ ] 16.1 Create `agent-core/README.md` with project documentation
+- [x] 16. Create README
+  - [x] 16.1 Create `agent-core/README.md` with project documentation
     - Project overview and architecture
     - Prerequisites: `uv`, Docker, AWS CLI, CDK
     - Setup steps: `uv sync`, environment configuration
@@ -246,7 +246,7 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - Running tests: `uv run pytest`
     - _Requirements: 1.4, 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 17. Final checkpoint — All tests pass, integration verified
+- [x] 17. Final checkpoint — All tests pass, integration verified
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
