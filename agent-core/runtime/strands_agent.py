@@ -322,13 +322,12 @@ def search_product(condition: str) -> str:
 
 
 @tool
-def get_recommendation(user_id: str, preference: str) -> str:
+def get_recommendation(user_id: str) -> str:
     """
     Get personalized product recommendations for a user.
     
     Args:
         user_id: User identifier for personalization
-        preference: User's stated preference or requirement
     
     Returns:
         JSON string with recommendations and summary
