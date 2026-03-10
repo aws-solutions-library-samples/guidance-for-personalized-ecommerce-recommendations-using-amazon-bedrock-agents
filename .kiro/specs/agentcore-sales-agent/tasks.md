@@ -204,14 +204,13 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - `set -euo pipefail` for strict error handling
     - Accept CLI arguments: `--aoss-endpoint` (required), `--item-table`, `--user-table`, `--recommender-arn`, `--network-mode`, `--subnets`, `--security-groups`, `--region`
     - Validate `--aoss-endpoint` is provided (exit with error if missing)
-    - Check for uncommitted changes; fail if working tree is dirty
-    - `git push` to ensure remote has latest code
     - Build CDK context args string from CLI parameters
     - Run `cdk deploy AgentCoreStack` with context parameters
     - Extract `RuntimeArn` and `EcrRepositoryUri` from CDK outputs
     - Print deployment summary with Runtime ARN, ECR URI, and test invoke command
+    - Print note reminding user to call `update_agent_runtime` for subsequent image updates
     - Exit non-zero with descriptive message on any step failure
-    - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 11.4_
+    - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 11.4_
 
 - [ ] 15. Implement Chat CLI
   - [ ] 15.1 Create `agent-core/chat_cli.py` interactive chat script
@@ -242,6 +241,7 @@ Re-implement the existing Bedrock Agent-based sales assistant (`lambda/handler.p
     - Setup steps: `uv sync`, environment configuration
     - Local development: `agentcore dev`, `agentcore invoke --dev '{"prompt": "..."}'`
     - Deployment via `deploy.sh` with all CLI arguments documented
+    - Updating the runtime after subsequent image rebuilds: document `update_agent_runtime` workflow (call via AWS CLI or SDK after CodeBuild pushes new image, DEFAULT endpoint auto-updates to latest version)
     - Chat CLI usage: `python chat_cli.py --endpoint <url> --user-id <id>`
     - Running tests: `uv run pytest`
     - _Requirements: 1.4, 8.1, 8.2, 8.3, 8.4_

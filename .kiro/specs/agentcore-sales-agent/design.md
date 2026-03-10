@@ -80,7 +80,6 @@ graph TB
 sequenceDiagram
     participant Dev as Developer
     participant DS as deploy.sh
-    participant Git as Git Remote
     participant CDK as cdk deploy
     participant CF as CloudFormation
     participant S3 as S3 Asset
@@ -90,8 +89,6 @@ sequenceDiagram
     participant AC as CfnRuntime
 
     Dev->>DS: ./deploy.sh --aoss-endpoint ...
-    DS->>Git: git push
-    Git-->>DS: Push complete
     DS->>CDK: cdk deploy --context aoss-endpoint=...
     CDK->>S3: Upload agent-core/ as S3 asset
     CDK->>CF: Create/Update stack
@@ -430,13 +427,14 @@ set -euo pipefail
 
 Steps:
 1. Parse CLI arguments; validate `--aoss-endpoint` is provided
-2. Check for uncommitted changes; fail if working tree is dirty
-3. `git push` to ensure remote has latest code
-4. Build CDK context args string from CLI parameters
-5. Run `cdk deploy AgentCoreStack` with context parameters — CDK atomically provisions ECR, uploads S3 asset, creates CodeBuild, triggers build via Lambda custom resource, waits for build, creates CfnRuntime, creates SSM parameters
-6. Extract `RuntimeArn` and `EcrRepositoryUri` from CDK outputs
-7. Print deployment summary with Runtime ARN, ECR URI, and test invoke command
-8. Exit non-zero on any step failure (guaranteed by `set -euo pipefail`)
+2. Build CDK context args string from CLI parameters
+3. Run `cdk deploy AgentCoreStack` with context parameters — CDK atomically provisions ECR, uploads S3 asset, creates CodeBuild, triggers build via Lambda custom resource, waits for build, creates CfnRuntime, creates SSM parameters
+4. Extract `RuntimeArn` and `EcrRepositoryUri` from CDK outputs
+5. Print deployment summary with Runtime ARN, ECR URI, and test invoke command
+6. Print a note reminding the user to call `update_agent_runtime` after subsequent image rebuilds to redeploy the latest image
+7. Exit non-zero on any step failure (guaranteed by `set -euo pipefail`)
+
+**Note on subsequent deploys:** `CfnRuntime` is created on the initial deploy with the `:latest` tag. On subsequent deploys, after CodeBuild pushes a new image to ECR, the user must call `update_agent_runtime` (via AWS CLI or SDK) to trigger AgentCore to pick up the new image. The DEFAULT endpoint automatically points to the latest version once updated. The README documents this workflow.
 
 #### 11. `chat_cli.py` — Interactive Chat CLI
 

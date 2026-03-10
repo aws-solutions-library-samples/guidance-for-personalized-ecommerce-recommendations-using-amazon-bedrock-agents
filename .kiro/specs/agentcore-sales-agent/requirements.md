@@ -198,11 +198,10 @@ This feature re-implements the existing Bedrock Agent-based sales assistant as a
 
 1. THE Deploy_Script SHALL be a shell script located at `agent-core/deploy.sh`
 2. THE Deploy_Script SHALL run `cdk deploy` to provision the full CDK stack (ECR repository, CodeBuild project, CodeBuild trigger, CfnRuntime, SSM parameters)
-3. THE Deploy_Script SHALL ensure local code changes are committed and pushed to the Git repository before deploying
-4. THE Deploy_Script SHALL accept command-line arguments for AOSS endpoint, DynamoDB table names, Personalize ARN, network mode, subnets, security groups, and AWS region, passing them as CDK context parameters
-5. THE Deploy_Script SHALL extract the Runtime ARN and ECR URI from CDK outputs and display them
-6. THE Deploy_Script SHALL print a deployment summary with a test command upon successful completion
-7. IF any step in the deployment fails, THEN THE Deploy_Script SHALL exit with a non-zero status code and print a descriptive error message indicating which step failed
+3. THE Deploy_Script SHALL accept command-line arguments for AOSS endpoint, DynamoDB table names, Personalize ARN, network mode, subnets, security groups, and AWS region, passing them as CDK context parameters
+4. THE Deploy_Script SHALL extract the Runtime ARN and ECR URI from CDK outputs and display them
+5. THE Deploy_Script SHALL print a deployment summary with a test command upon successful completion
+6. IF any step in the deployment fails, THEN THE Deploy_Script SHALL exit with a non-zero status code and print a descriptive error message indicating which step failed
 
 ### Requirement 15: Chat CLI
 
