@@ -16,7 +16,7 @@ from bedrock_agentcore.runtime import AgentCoreRuntimeClient
 
 try:
     from . import __version__
-    from .streaming import StreamingResponseHandler
+    from .streaming import StreamingResponseHandler, format_agent_label
 except ImportError:
     import sys
     from pathlib import Path
@@ -24,7 +24,7 @@ except ImportError:
     if _parent not in sys.path:
         sys.path.insert(0, _parent)
     from cli import __version__
-    from cli.streaming import StreamingResponseHandler
+    from cli.streaming import StreamingResponseHandler, format_agent_label
 
 class SalesAgentCLI:
     """Manages stack context and AWS client interactions for all CLI commands."""
@@ -366,14 +366,17 @@ def chat(ctx):
         async def _send():
             async with websockets.connect(url, open_timeout=120, close_timeout=10) as ws:
                 await ws.send(json.dumps(payload))
-                handler = StreamingResponseHandler(verbosity=verbosity)
+                handler = StreamingResponseHandler(verbosity=verbosity, suppress_echo=True)
                 return await handler.handle_stream(ws)
 
         try:
             response_text, metrics = asyncio.run(_send())
             _log_interaction(log_dir, session_id, "assistant", response_text, metrics)
+            label = format_agent_label(metrics.time_to_first_token)
+            click.echo(label)
+            click.echo(response_text)
             if verbosity >= 1 and metrics.time_to_first_token is not None:
-                click.echo(f"\nTTFB: {metrics.time_to_first_token:.2f}s | Total: {metrics.total_duration:.2f}s")
+                click.echo(f"TTFB: {metrics.time_to_first_token:.2f}s | Total: {metrics.total_duration:.2f}s")
             click.echo("")  # blank line between exchanges
         except Exception as exc:
             click.echo(f"Error: {exc}", err=True)
