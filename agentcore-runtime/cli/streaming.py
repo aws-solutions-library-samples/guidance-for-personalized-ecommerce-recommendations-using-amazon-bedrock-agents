@@ -173,9 +173,8 @@ class StreamingResponseHandler:
         """Start the animated thinking spinner."""
         self._spinner_running = True
         self._spinner_frame = 0
-        click.echo(
-            f"\r{self.SPINNER_FRAMES[0]} Thinking...", nl=False
-        )
+        text = click.style(f"{self.SPINNER_FRAMES[0]} Thinking...", fg="green")
+        click.echo(f"\r{text}", nl=False)
 
     def _update_spinner(self, thinking_text: str) -> None:
         """Update spinner with thinking tag content."""
@@ -189,13 +188,23 @@ class StreamingResponseHandler:
         display_text = thinking_text.strip()
         if len(display_text) > 60:
             display_text = display_text[:57] + "..."
-        click.echo(f"\r{frame} Thinking: {display_text}    ", nl=False)
+        text = click.style(f"{frame} Thinking: {display_text}", fg="green")
+        click.echo(f"\r{text}    ", nl=False)
 
     def _stop_spinner(self) -> None:
-        """Stop spinner when first response chunk arrives.
-
-        Leaves the spinner line visible, response starts on new line.
-        """
+        """Stop spinner and clear the spinner line."""
         if self._spinner_running:
             self._spinner_running = False
-            click.echo("")  # Move to new line, leaving spinner visible
+            click.echo("\r" + " " * 80 + "\r", nl=False)  # Clear spinner line
+
+
+def format_agent_label(ttfb: float | None, use_color: bool = True) -> str:
+    """Format the agent label with optional TTFB and color."""
+    if ttfb is not None:
+        label_text = f"Agent[{ttfb:.1f}s]"
+    else:
+        label_text = "Agent"
+    if use_color:
+        return click.style(label_text, fg="green") + ":"
+    return label_text + ":"
+
