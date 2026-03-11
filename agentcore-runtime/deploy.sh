@@ -8,6 +8,7 @@ set -euo pipefail
 #   [--item-table <name>] \
 #   [--user-table <name>] \
 #   [--recommender-arn <arn>] \
+#   [--model-id <model-id>] \
 #   [--network-mode PUBLIC|PRIVATE] \
 #   [--subnets <comma-separated>] \
 #   [--security-groups <comma-separated>] \
@@ -20,6 +21,7 @@ MEMORY_ID=""
 ITEM_TABLE=""
 USER_TABLE=""
 RECOMMENDER_ARN=""
+MODEL_ID=""
 NETWORK_MODE=""
 SUBNETS=""
 SECURITY_GROUPS=""
@@ -50,6 +52,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --recommender-arn)
             RECOMMENDER_ARN="$2"
+            shift 2
+            ;;
+        --model-id)
+            MODEL_ID="$2"
             shift 2
             ;;
         --network-mode)
@@ -109,6 +115,10 @@ if [[ -n "$RECOMMENDER_ARN" ]]; then
     CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context recommender-arn=$RECOMMENDER_ARN"
 fi
 
+if [[ -n "$MODEL_ID" ]]; then
+    CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context model-id=$MODEL_ID"
+fi
+
 if [[ -n "$NETWORK_MODE" ]]; then
     CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context network-mode=$NETWORK_MODE"
 fi
@@ -131,6 +141,9 @@ if [[ -n "$PROFILE" ]]; then
     PROFILE_ARGS="--profile $PROFILE"
     export AWS_PROFILE="$PROFILE"
 fi
+
+# Ensure cdk package is importable from the project root
+export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$(pwd)"
 
 # Deploy CDK stack
 echo "Deploying ${STACK_NAME}..."
@@ -160,10 +173,11 @@ echo "========================================="
 echo "  Runtime ARN:  $RUNTIME_ARN"
 echo "  ECR URI:      $ECR_URI"
 echo ""
-echo "  Test invoke command:"
-echo "    aws bedrock-agent-runtime invoke-agent \\"
-echo "      --agent-runtime-arn $RUNTIME_ARN \\"
-echo "      --payload '{\"prompt\": \"search for red shoes\"}'"
+echo "  Test with the CLI:"
+echo "    python -m cli --stack-name ${STACK_NAME} invoke -m \"search for red shoes\""
+echo ""
+echo "  Or start an interactive chat:"
+echo "    python -m cli --stack-name ${STACK_NAME} chat"
 echo ""
 echo "  NOTE: For subsequent image updates, rebuild and push to ECR,"
 echo "  then call update_agent_runtime to redeploy the latest image."

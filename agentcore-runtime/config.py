@@ -12,14 +12,15 @@ import boto3
 
 logger = logging.getLogger(__name__)
 
-# Fields that have default values
+# Fields that have default values (only for non-critical settings)
 _DEFAULTS = {
     "item_table_name": "item_table",
     "user_table_name": "user_table",
-    "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+    "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
 }
 
 # Fields that must be present (no default, no None allowed)
+# All values should be set in SSM Parameter Store (single source of truth)
 _REQUIRED_FIELDS = ("aoss_collection_id", "aoss_region")
 
 # Mapping from config field name to the corresponding environment variable

@@ -77,7 +77,21 @@ def create_agentcore_role(scope: Construct, id: str) -> iam.Role:
     # Bedrock AgentCore Memory Service
     role.add_to_policy(
         iam.PolicyStatement(
-            actions=["bedrock-agentcore:memory:*"],
+            actions=[
+                "bedrock-agentcore:CreateMemory",
+                "bedrock-agentcore:GetMemory",
+                "bedrock-agentcore:UpdateMemory",
+                "bedrock-agentcore:DeleteMemory",
+                "bedrock-agentcore:ListMemories",
+                "bedrock-agentcore:CreateEvent",
+                "bedrock-agentcore:ListEvents",
+                "bedrock-agentcore:BatchCreateMemoryRecords",
+                "bedrock-agentcore:BatchDeleteMemoryRecords",
+                "bedrock-agentcore:BatchUpdateMemoryRecords",
+                "bedrock-agentcore:ListMemoryRecords",
+                "bedrock-agentcore:SearchMemoryRecords",
+                "bedrock-agentcore:ExtractMemory",
+            ],
             resources=["*"],
         )
     )

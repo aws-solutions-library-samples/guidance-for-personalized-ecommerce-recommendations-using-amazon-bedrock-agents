@@ -36,6 +36,7 @@ class AgentCoreStack(Stack):
         item_table_name = self.node.try_get_context("item-table-name") or "item_table"
         user_table_name = self.node.try_get_context("user-table-name") or "user_table"
         recommender_arn = self.node.try_get_context("recommender-arn") or ""
+        model_id = self.node.try_get_context("model-id") or "us.anthropic.claude-sonnet-4-20250514-v1:0"
         network_mode = self.node.try_get_context("network-mode") or "PUBLIC"
         subnets = self.node.try_get_context("subnets") or ""
         security_groups = self.node.try_get_context("security-groups") or ""
@@ -215,6 +216,13 @@ class AgentCoreStack(Stack):
             "ParamRecommenderArn",
             parameter_name=f"{param_prefix}/recommender_arn",
             string_value=recommender_arn,
+        )
+
+        ssm.StringParameter(
+            self,
+            "ParamModelId",
+            parameter_name=f"{param_prefix}/model_id",
+            string_value=model_id,
         )
 
         # --- 8. CfnOutputs ---

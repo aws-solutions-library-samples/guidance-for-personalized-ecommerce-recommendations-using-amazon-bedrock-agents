@@ -68,6 +68,7 @@ chmod +x deploy.sh
 | `--item-table` | No | `item_table` | DynamoDB item table name |
 | `--user-table` | No | `user_table` | DynamoDB user table name |
 | `--recommender-arn` | No | — | Amazon Personalize recommender ARN |
+| `--model-id` | No | `us.anthropic.claude-sonnet-4-20250514-v1:0` | Bedrock model/inference profile ID |
 | `--network-mode` | No | `PUBLIC` | `PUBLIC` or `PRIVATE` |
 | `--subnets` | If PRIVATE | — | Comma-separated subnet IDs |
 | `--security-groups` | If PRIVATE | — | Comma-separated security group IDs |
@@ -80,8 +81,8 @@ On success the script prints the Runtime ARN, ECR URI, and a test invoke command
 After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. When you rebuild and push a new image to ECR (e.g., via a subsequent `cdk deploy` or manual CodeBuild trigger), you need to tell AgentCore to pick up the new image:
 
 ```bash
-aws bedrock-agent-runtime update-agent-runtime \
-  --agent-runtime-arn <runtime-arn>
+aws bedrock-agentcore-control update-agent-runtime \
+  --agent-runtime-id <runtime-id>
 ```
 
 The **DEFAULT** endpoint automatically points to the latest version once the update completes. No additional routing changes are needed.
@@ -144,7 +145,7 @@ See [`.env.example`](.env.example) for the full list. Key variables:
 | `RECOMMENDER_ARN` | No | — | Amazon Personalize recommender ARN |
 | `ITEM_TABLE_NAME` | No | `item_table` | DynamoDB item table name |
 | `USER_TABLE_NAME` | No | `user_table` | DynamoDB user table name |
-| `MODEL_ID` | No | `anthropic.claude-sonnet-4-20250514` | Bedrock model ID |
+| `MODEL_ID` | No | — | Bedrock model/inference profile ID (set via SSM) |
 | `PARAMETER_STORE_PREFIX` | No | `/agentcore/sales-agent/` | SSM parameter path prefix |
 
 At startup the agent reads configuration from AWS Systems Manager Parameter Store first, then falls back to environment variables for any missing values.
