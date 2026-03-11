@@ -1,11 +1,12 @@
 """Sales Agent CLI — interact with your deployed AgentCore agent."""
 
 import click
+
+
 import boto3
 from botocore.exceptions import ClientError
 
 from cli import __version__
-
 
 class SalesAgentCLI:
     """Manages stack context and AWS client interactions for all CLI commands."""
@@ -147,6 +148,96 @@ def cli(ctx, stack_name, verbose):
     ctx.ensure_object(dict)
     ctx.obj["verbosity"] = verbose
     ctx.obj["stack_name"] = stack_name
+
+
+@cli.command()
+def version():
+    """Display the CLI version."""
+    click.echo(f"sales-agent-cli {__version__}")
+
+
+def _get_cli(ctx):
+    """Validate stack and create SalesAgentCLI instance, storing it in ctx.obj."""
+    stack_name = ctx.obj.get("stack_name")
+    if not stack_name:
+        raise click.ClickException(
+            "Stack name is required. Use --stack-name or set AGENTCORE_STACK_NAME."
+        )
+    cli_instance = SalesAgentCLI(stack_name, ctx.obj.get("verbosity", 0))
+    cli_instance.validate_credentials()
+    cli_instance.validate_stack()
+    ctx.obj["cli"] = cli_instance
+    return cli_instance
+
+
+@cli.group()
+@click.pass_context
+def param(ctx):
+    """Manage Parameter Store values for the deployment."""
+    _get_cli(ctx)
+
+
+@param.command("set")
+@click.option("--key", required=True, help="Parameter key")
+@click.option("--value", required=True, help="Parameter value")
+@click.pass_context
+def param_set(ctx, key, value):
+    """Set a parameter value."""
+    cli_instance = ctx.obj["cli"]
+    prefix = cli_instance.get_ssm_prefix()
+    full_path = f"{prefix}{key}"
+    ssm = cli_instance.create_client("ssm")
+    try:
+        ssm.put_parameter(
+            Name=full_path, Value=value, Type="String", Overwrite=True
+        )
+        click.echo(f"Set parameter '{full_path}' = '{value}'")
+    except ClientError as exc:
+        error_msg = exc.response["Error"].get("Message", str(exc))
+        raise click.ClickException(f"Failed to set parameter: {error_msg}")
+
+
+@param.command("get")
+@click.option("--key", required=True, help="Parameter key")
+@click.pass_context
+def param_get(ctx, key):
+    """Get a parameter value."""
+    cli_instance = ctx.obj["cli"]
+    prefix = cli_instance.get_ssm_prefix()
+    full_path = f"{prefix}{key}"
+    ssm = cli_instance.create_client("ssm")
+    try:
+        response = ssm.get_parameter(Name=full_path)
+        param_value = response["Parameter"]["Value"]
+        click.echo(f"{full_path} = {param_value}")
+    except ClientError as exc:
+        error_code = exc.response["Error"].get("Code", "")
+        if error_code == "ParameterNotFound":
+            raise click.ClickException(
+                f"Parameter '{key}' not found under prefix '{prefix}'"
+            )
+        error_msg = exc.response["Error"].get("Message", str(exc))
+        raise click.ClickException(f"Failed to get parameter: {error_msg}")
+
+
+@param.command("list")
+@click.pass_context
+def param_list(ctx):
+    """List all parameters under the stack prefix."""
+    cli_instance = ctx.obj["cli"]
+    prefix = cli_instance.get_ssm_prefix()
+    ssm = cli_instance.create_client("ssm")
+    try:
+        response = ssm.get_parameters_by_path(Path=prefix, Recursive=True)
+        parameters = response.get("Parameters", [])
+        if not parameters:
+            click.echo(f"No parameters found under '{prefix}'")
+            return
+        for p in parameters:
+            click.echo(f"{p['Name']} = {p['Value']}")
+    except ClientError as exc:
+        error_msg = exc.response["Error"].get("Message", str(exc))
+        raise click.ClickException(f"Failed to list parameters: {error_msg}")
 
 
 if __name__ == "__main__":
