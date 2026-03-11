@@ -326,7 +326,7 @@ def chat(ctx):
 
     while True:
         try:
-            message = click.prompt("You", prompt_suffix=": ")
+            message = click.prompt(click.style("You", fg="green"), prompt_suffix=": ")
         except (EOFError, KeyboardInterrupt, click.Abort):
             click.echo("\nGoodbye!")
             break
