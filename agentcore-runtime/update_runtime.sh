@@ -71,12 +71,31 @@ OUTPUTS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARG
     --query "Stacks[0].Outputs" --output json)
 
 get_output() {
-    echo "$OUTPUTS" | python3 -c "import sys,json; outputs=json.load(sys.stdin); print(next(o['OutputValue'] for o in outputs if o['OutputKey']=='$1'))"
+    echo "$OUTPUTS" | python3 -c "
+import sys, json
+outputs = json.load(sys.stdin)
+matches = [o['OutputValue'] for o in outputs if o['OutputKey'] == '$1']
+print(matches[0] if matches else '')
+"
 }
 
 ECR_URI=$(get_output "EcrRepositoryUri")
 RUNTIME_ID=$(get_output "RuntimeId")
 CODEBUILD_PROJECT=$(get_output "CodeBuildProjectName")
+
+# Fallback: look up CodeBuild project from stack resources if output not available
+if [[ -z "$CODEBUILD_PROJECT" ]]; then
+    echo "  CodeBuildProjectName output not found, looking up from stack resources..."
+    CODEBUILD_PROJECT=$(aws cloudformation describe-stack-resources \
+        --stack-name "$STACK_NAME" $AWS_ARGS \
+        --query "StackResources[?ResourceType=='AWS::CodeBuild::Project'].PhysicalResourceId" \
+        --output text)
+fi
+
+if [[ -z "$ECR_URI" || -z "$RUNTIME_ID" || -z "$CODEBUILD_PROJECT" ]]; then
+    echo "❌ Error: Could not retrieve required stack outputs (EcrRepositoryUri, RuntimeId, CodeBuildProjectName)."
+    exit 1
+fi
 
 echo "  ECR URI:          $ECR_URI"
 echo "  Runtime ID:       $RUNTIME_ID"
