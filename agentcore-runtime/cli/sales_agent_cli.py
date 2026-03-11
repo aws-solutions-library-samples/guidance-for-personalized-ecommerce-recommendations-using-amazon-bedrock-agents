@@ -14,8 +14,17 @@ import boto3
 from botocore.exceptions import ClientError
 from bedrock_agentcore.runtime import AgentCoreRuntimeClient
 
-from . import __version__
-from .streaming import StreamingResponseHandler
+try:
+    from . import __version__
+    from .streaming import StreamingResponseHandler
+except ImportError:
+    import sys
+    from pathlib import Path
+    _parent = str(Path(__file__).resolve().parent.parent)
+    if _parent not in sys.path:
+        sys.path.insert(0, _parent)
+    from cli import __version__
+    from cli.streaming import StreamingResponseHandler
 
 class SalesAgentCLI:
     """Manages stack context and AWS client interactions for all CLI commands."""
