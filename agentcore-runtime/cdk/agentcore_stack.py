@@ -27,7 +27,7 @@ from cdk.infra_utils.agentcore_role import create_agentcore_role
 class AgentCoreStack(Stack):
     """CDK stack provisioning the full AgentCore Runtime atomically."""
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *, env_name: str = None, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # --- Read CDK context parameters ---
@@ -39,11 +39,13 @@ class AgentCoreStack(Stack):
         network_mode = self.node.try_get_context("network-mode") or "PUBLIC"
         subnets = self.node.try_get_context("subnets") or ""
         security_groups = self.node.try_get_context("security-groups") or ""
+        env_name = env_name or self.node.try_get_context("env-name") or "production"
+        memory_id = self.node.try_get_context("memory-id") or ""
 
         # --- 1. ECR Repository ---
         ecr_repo = ecr.Repository(
             self,
-            "AgentCoreEcrRepo",
+            f"AgentCoreEcrRepo-{env_name}",
             empty_on_delete=True,
             image_scan_on_push=True,
             removal_policy=RemovalPolicy.DESTROY,
@@ -162,14 +164,15 @@ class AgentCoreStack(Stack):
                     container_uri=f"{ecr_repo.repository_uri}:latest",
                 ),
             ),
-            agent_runtime_name="agentcore_sales_agent",
+            agent_runtime_name=f"agentcore_sales_agent_{env_name}",
             network_configuration=bedrockagentcore.CfnRuntime.NetworkConfigurationProperty(
                 **network_config,
             ),
             role_arn=execution_role.role_arn,
             protocol_configuration="HTTP",
             environment_variables={
-                "PARAMETER_STORE_PREFIX": "/agentcore/sales-agent/",
+                "PARAMETER_STORE_PREFIX": f"/agentcore/sales-agent/{env_name}/",
+                "MEMORY_ID": memory_id,
             },
         )
 
@@ -177,7 +180,7 @@ class AgentCoreStack(Stack):
         runtime.node.add_dependency(build_trigger)
 
         # --- 7. SSM Parameters ---
-        param_prefix = "/agentcore/sales-agent"
+        param_prefix = f"/agentcore/sales-agent/{env_name}"
 
         ssm.StringParameter(
             self,
