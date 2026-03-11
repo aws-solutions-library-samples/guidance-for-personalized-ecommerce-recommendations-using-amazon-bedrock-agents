@@ -29,8 +29,9 @@ class StreamingResponseHandler:
 
     SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
-    def __init__(self, verbosity: int = 0):
+    def __init__(self, verbosity: int = 0, suppress_echo: bool = False):
         self.verbosity = verbosity
+        self.suppress_echo = suppress_echo
         self.metrics = PerformanceMetrics()
         self._spinner_running = False
         self._spinner_frame = 0
@@ -93,7 +94,7 @@ class StreamingResponseHandler:
 
         self._stop_spinner()
         self.metrics.total_duration = time.monotonic() - start_time
-        if self._state == _ThinkingState.RESPONDING:
+        if self._state == _ThinkingState.RESPONDING and not self.suppress_echo:
             click.echo("")  # Final newline after streamed response
         return response_text, self.metrics
 
@@ -120,7 +121,8 @@ class StreamingResponseHandler:
                             self.metrics.time_to_first_token = (
                                 time.monotonic() - start_time
                             )
-                        click.echo(after, nl=False)
+                        if not self.suppress_echo:
+                            click.echo(after, nl=False)
                         response_text += after
                 else:
                     self._update_spinner(thinking_content)
@@ -132,7 +134,8 @@ class StreamingResponseHandler:
                     self.metrics.time_to_first_token = (
                         time.monotonic() - start_time
                     )
-                click.echo(text, nl=False)
+                if not self.suppress_echo:
+                    click.echo(text, nl=False)
                 response_text += text
 
         elif self._state == _ThinkingState.THINKING:
@@ -149,7 +152,8 @@ class StreamingResponseHandler:
                         self.metrics.time_to_first_token = (
                             time.monotonic() - start_time
                         )
-                    click.echo(after, nl=False)
+                    if not self.suppress_echo:
+                        click.echo(after, nl=False)
                     response_text += after
             else:
                 self._update_spinner(text)
@@ -159,7 +163,8 @@ class StreamingResponseHandler:
                 self.metrics.time_to_first_token = (
                     time.monotonic() - start_time
                 )
-            click.echo(text, nl=False)
+            if not self.suppress_echo:
+                click.echo(text, nl=False)
             response_text += text
 
         return response_text
