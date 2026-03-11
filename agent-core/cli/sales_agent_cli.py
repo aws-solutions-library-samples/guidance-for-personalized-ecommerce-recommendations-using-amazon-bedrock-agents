@@ -1,12 +1,20 @@
 """Sales Agent CLI — interact with your deployed AgentCore agent."""
 
-import click
+import asyncio
+import json
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
 
+import click
+import websockets
 
 import boto3
 from botocore.exceptions import ClientError
+from bedrock_agentcore.runtime import AgentCoreRuntimeClient
 
 from cli import __version__
+from cli.streaming import StreamingResponseHandler
 
 class SalesAgentCLI:
     """Manages stack context and AWS client interactions for all CLI commands."""
@@ -238,6 +246,145 @@ def param_list(ctx):
     except ClientError as exc:
         error_msg = exc.response["Error"].get("Message", str(exc))
         raise click.ClickException(f"Failed to list parameters: {error_msg}")
+
+
+@cli.command()
+@click.option("--message", "-m", required=True, help="Message to send to the agent")
+@click.option("--session-id", default=None, help="Session ID for multi-turn conversation")
+@click.option("--actor-id", default=None, help="Actor ID for the invocation")
+@click.pass_context
+def invoke(ctx, message, session_id, actor_id):
+    """Send a single message to the agent and display the response."""
+    cli_instance = _get_cli(ctx)
+    verbosity = ctx.obj.get("verbosity", 0)
+
+    runtime_arn = cli_instance.get_runtime_arn()
+    if verbosity >= 1:
+        click.echo(f"Runtime ARN: {runtime_arn}")
+
+    client = AgentCoreRuntimeClient(
+        region=cli_instance.session.region_name,
+        session=cli_instance.session,
+    )
+    url = client.generate_presigned_url(
+        runtime_arn=runtime_arn, endpoint_name="DEFAULT"
+    )
+
+    payload = {"prompt": message}
+    if session_id:
+        payload["session_id"] = session_id
+    if actor_id:
+        payload["actor_id"] = actor_id
+
+    async def _invoke():
+        async with websockets.connect(url, open_timeout=120, close_timeout=10) as ws:
+            await ws.send(json.dumps(payload))
+            handler = StreamingResponseHandler(verbosity=verbosity)
+            response_text, metrics = await handler.handle_stream(ws)
+            return response_text, metrics
+
+    try:
+        response_text, metrics = asyncio.run(_invoke())
+        if verbosity >= 1 and metrics.time_to_first_token is not None:
+            click.echo(
+                f"\nTTFB: {metrics.time_to_first_token:.2f}s | "
+                f"Total: {metrics.total_duration:.2f}s"
+            )
+    except Exception as exc:
+        raise click.ClickException(f"Invocation failed: {exc}")
+
+
+@cli.command()
+@click.pass_context
+def chat(ctx):
+    """Start an interactive chat session with the agent."""
+    cli_instance = _get_cli(ctx)
+    verbosity = ctx.obj.get("verbosity", 0)
+
+    session_id = str(uuid.uuid4())
+    log_dir = Path.home() / ".sales-agent-cli" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    runtime_arn = cli_instance.get_runtime_arn()
+    client = AgentCoreRuntimeClient(
+        region=cli_instance.session.region_name,
+        session=cli_instance.session,
+    )
+
+    click.echo(f"Chat session started (ID: {session_id})")
+    click.echo("Type /help for available commands.\n")
+
+    while True:
+        try:
+            message = click.prompt("You", prompt_suffix=": ")
+        except (EOFError, KeyboardInterrupt, click.Abort):
+            click.echo("\nGoodbye!")
+            break
+
+        stripped = message.strip()
+        if not stripped:
+            continue
+
+        # Slash commands
+        if stripped.lower() in ("/exit", "/quit", "/q"):
+            click.echo("Goodbye!")
+            break
+        elif stripped.lower() == "/clear":
+            session_id = str(uuid.uuid4())
+            click.echo(f"Session cleared. New session ID: {session_id}")
+            continue
+        elif stripped.lower() == "/session":
+            click.echo(f"Session ID: {session_id}")
+            continue
+        elif stripped.lower() == "/help":
+            click.echo("Available commands:")
+            click.echo("  /exit, /quit, /q  - End the chat session")
+            click.echo("  /clear            - Start a new session")
+            click.echo("  /session          - Show current session ID")
+            click.echo("  /help             - Show this help message")
+            continue
+
+        # Log user message
+        _log_interaction(log_dir, session_id, "user", stripped)
+
+        # Send message
+        url = client.generate_presigned_url(
+            runtime_arn=runtime_arn, endpoint_name="DEFAULT"
+        )
+        payload = {"prompt": stripped, "session_id": session_id}
+
+        async def _send():
+            async with websockets.connect(url, open_timeout=120, close_timeout=10) as ws:
+                await ws.send(json.dumps(payload))
+                handler = StreamingResponseHandler(verbosity=verbosity)
+                return await handler.handle_stream(ws)
+
+        try:
+            response_text, metrics = asyncio.run(_send())
+            _log_interaction(log_dir, session_id, "assistant", response_text, metrics)
+            if verbosity >= 1 and metrics.time_to_first_token is not None:
+                click.echo(f"\nTTFB: {metrics.time_to_first_token:.2f}s | Total: {metrics.total_duration:.2f}s")
+            click.echo("")  # blank line between exchanges
+        except Exception as exc:
+            click.echo(f"Error: {exc}", err=True)
+
+
+def _log_interaction(log_dir, session_id, role, content, metrics=None):
+    """Append a JSON line to the session log file."""
+    log_file = log_dir / f"{session_id}.jsonl"
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "session_id": session_id,
+        "role": role,
+        "content": content,
+    }
+    if metrics and metrics.time_to_first_token is not None:
+        entry["metrics"] = {
+            "time_to_first_token": metrics.time_to_first_token,
+            "total_duration": metrics.total_duration,
+        }
+    with open(log_file, "a") as f:
+        f.write(json.dumps(entry) + "\n")
 
 
 if __name__ == "__main__":
