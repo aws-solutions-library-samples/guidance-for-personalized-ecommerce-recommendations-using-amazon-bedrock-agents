@@ -12,6 +12,7 @@ set -euo pipefail
 #   [--network-mode PUBLIC|PRIVATE] \
 #   [--subnets <comma-separated>] \
 #   [--security-groups <comma-separated>] \
+#   [--aoss-data-policy-name <policy-name>] \
 #   [--region <region>] \
 #   [--profile <profile>]
 
@@ -27,6 +28,7 @@ SUBNETS=""
 SECURITY_GROUPS=""
 REGION=""
 PROFILE=""
+AOSS_DATA_POLICY_NAME=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -76,6 +78,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --profile)
             PROFILE="$2"
+            shift 2
+            ;;
+        --aoss-data-policy-name)
+            AOSS_DATA_POLICY_NAME="$2"
             shift 2
             ;;
         *)
@@ -131,6 +137,10 @@ if [[ -n "$SECURITY_GROUPS" ]]; then
     CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context security-groups=$SECURITY_GROUPS"
 fi
 
+if [[ -n "$AOSS_DATA_POLICY_NAME" ]]; then
+    CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context aoss-data-policy-name=$AOSS_DATA_POLICY_NAME"
+fi
+
 REGION_ARGS=""
 if [[ -n "$REGION" ]]; then
     REGION_ARGS="--region $REGION"
@@ -179,6 +189,15 @@ echo ""
 echo "  Or start an interactive chat:"
 echo "    python -m cli --stack-name ${STACK_NAME} chat"
 echo ""
-echo "  NOTE: For subsequent image updates, rebuild and push to ECR,"
-echo "  then call update_agent_runtime to redeploy the latest image."
+if [[ -z "$AOSS_DATA_POLICY_NAME" ]]; then
+    echo "  ⚠️  WARNING: --aoss-data-policy-name was not provided."
+    echo "  The execution role for this environment will NOT be automatically"
+    echo "  added to the OpenSearch Serverless data access policy."
+    echo "  You must manually add the role to the AOSS data access policy,"
+    echo "  or the agent will fail to query the product search index."
+    echo ""
+    echo "  To automate this, re-deploy with:"
+    echo "    ./deploy.sh ... --aoss-data-policy-name <policy-name>"
+    echo ""
+fi
 echo "========================================="

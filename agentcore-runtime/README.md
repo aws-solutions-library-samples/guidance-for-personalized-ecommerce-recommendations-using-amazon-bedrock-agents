@@ -72,18 +72,46 @@ chmod +x deploy.sh
 | `--network-mode` | No | `PUBLIC` | `PUBLIC` or `PRIVATE` |
 | `--subnets` | If PRIVATE | — | Comma-separated subnet IDs |
 | `--security-groups` | If PRIVATE | — | Comma-separated security group IDs |
+| `--aoss-data-policy-name` | No | — | AOSS data access policy name (auto-adds execution role) |
 | `--region` | No | — | AWS region for deployment |
 
 On success the script prints the Runtime ARN, ECR URI, and a test invoke command.
 
+> **⚠️ OpenSearch Serverless Access**: When deploying a new environment, the execution role must be added to the AOSS data access policy or the agent will fail to query the product search index. Pass `--aoss-data-policy-name <policy-name>` to automate this. Without it, you must manually add the role ARN to the AOSS data access policy via the AWS console or CLI.
+
 ## Updating the Runtime
 
-After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. When you rebuild and push a new image to ECR (e.g., via a subsequent `cdk deploy` or manual CodeBuild trigger), you need to tell AgentCore to pick up the new image:
+After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. There are two ways to update the runtime when you change code.
+
+### Option 1: Re-deploy via CDK (recommended)
+
+Re-running `deploy.sh` will detect source code changes (via the S3 asset hash), trigger a CodeBuild build, push the new image, and update the runtime automatically.
 
 ```bash
+./deploy.sh --aoss-endpoint <collection-id> --region us-east-1
+```
+
+### Option 2: Manual ECR push (faster iteration)
+
+For quicker dev cycles without a full `cdk deploy`, build and push the Docker image directly:
+
+```bash
+# Get your ECR URI from cdk-outputs.json
+ECR_URI=$(python3 -c "import json; d=json.load(open('cdk-outputs-production.json')); print(d['AgentCoreStack-production']['EcrRepositoryUri'])")
+
+# Authenticate with ECR
+aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin "$ECR_URI"
+
+# Build and push (from agentcore-runtime/)
+docker build -t "$ECR_URI:latest" .
+docker push "$ECR_URI:latest"
+
+# Tell AgentCore to pick up the new image
 aws bedrock-agentcore-control update-agent-runtime \
   --agent-runtime-id <runtime-id>
 ```
+
+The runtime ID is available in `cdk-outputs.json` under the `RuntimeId` key.
 
 The **DEFAULT** endpoint automatically points to the latest version once the update completes. No additional routing changes are needed.
 

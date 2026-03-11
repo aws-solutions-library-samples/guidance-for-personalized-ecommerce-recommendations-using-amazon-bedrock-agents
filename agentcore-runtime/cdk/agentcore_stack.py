@@ -1,7 +1,8 @@
 """CDK stack for AgentCore Sales Agent infrastructure.
 
 Provisions ECR, CodeBuild (S3 asset source), Lambda custom resource build trigger,
-CfnRuntime, SSM parameters, and AgentCore execution IAM role.
+CfnRuntime, SSM parameters, AgentCore execution IAM role, and updates the AOSS
+data access policy to grant the new role access.
 """
 
 import os
@@ -33,6 +34,7 @@ class AgentCoreStack(Stack):
         # --- Read CDK context parameters ---
         aoss_endpoint = self.node.try_get_context("aoss-endpoint")
         aoss_region = self.node.try_get_context("aoss-region") or self.region
+        aoss_data_policy_name = self.node.try_get_context("aoss-data-policy-name") or ""
         item_table_name = self.node.try_get_context("item-table-name") or "item_table"
         user_table_name = self.node.try_get_context("user-table-name") or "user_table"
         recommender_arn = self.node.try_get_context("recommender-arn") or ""
@@ -142,11 +144,45 @@ class AgentCoreStack(Stack):
             service_token=trigger_fn.function_arn,
             properties={
                 "ProjectName": codebuild_project.project_name,
+                "SourceHash": source_asset.asset_hash,
             },
         )
 
         # --- 5. AgentCore Execution Role ---
         execution_role = create_agentcore_role(self, "AgentCoreExecutionRole")
+
+        # --- 5b. AOSS Data Access Policy Updater ---
+        # Automatically adds the execution role to the AOSS data access policy
+        # so new environments can query OpenSearch Serverless without manual steps.
+        if aoss_data_policy_name:
+            aoss_policy_fn = lambda_.Function(
+                self,
+                "AossDataPolicyUpdater",
+                runtime=lambda_.Runtime.PYTHON_3_12,
+                handler="aoss_policy_updater.handler",
+                code=lambda_.Code.from_asset(infra_utils_dir),
+                timeout=Duration.minutes(2),
+            )
+
+            aoss_policy_fn.add_to_role_policy(
+                iam.PolicyStatement(
+                    actions=[
+                        "aoss:GetAccessPolicy",
+                        "aoss:UpdateAccessPolicy",
+                    ],
+                    resources=["*"],
+                )
+            )
+
+            CustomResource(
+                self,
+                "AossDataPolicyTrigger",
+                service_token=aoss_policy_fn.function_arn,
+                properties={
+                    "PolicyName": aoss_data_policy_name,
+                    "RoleArn": execution_role.role_arn,
+                },
+            )
 
         # --- 6. CfnRuntime ---
         # Build network configuration
@@ -187,7 +223,7 @@ class AgentCoreStack(Stack):
             self,
             "ParamAossCollectionId",
             parameter_name=f"{param_prefix}/aoss_collection_id",
-            string_value=aoss_endpoint or "",
+            string_value=aoss_endpoint or "NONE",
         )
 
         ssm.StringParameter(
@@ -215,7 +251,7 @@ class AgentCoreStack(Stack):
             self,
             "ParamRecommenderArn",
             parameter_name=f"{param_prefix}/recommender_arn",
-            string_value=recommender_arn,
+            string_value=recommender_arn or "NONE",
         )
 
         ssm.StringParameter(
@@ -245,4 +281,11 @@ class AgentCoreStack(Stack):
             "EcrRepositoryUri",
             value=ecr_repo.repository_uri,
             description="ECR Repository URI",
+        )
+
+        CfnOutput(
+            self,
+            "ExecutionRoleArn",
+            value=execution_role.role_arn,
+            description="AgentCore Execution Role ARN",
         )

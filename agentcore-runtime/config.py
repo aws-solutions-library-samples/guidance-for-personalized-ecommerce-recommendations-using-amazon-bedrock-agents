@@ -69,6 +69,10 @@ class Config:
         for field, env_var in _ENV_VAR_MAP.items():
             value = ps_values.get(field)
             source = "ssm" if value else None
+            # Treat "NONE" placeholder as absent (used by CDK for optional SSM params)
+            if value == "NONE":
+                value = None
+                source = None
             if value is None:
                 value = os.environ.get(env_var)
                 source = "env" if value else None
