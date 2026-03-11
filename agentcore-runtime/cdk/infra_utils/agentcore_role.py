@@ -74,6 +74,14 @@ def create_agentcore_role(scope: Construct, id: str) -> iam.Role:
         )
     )
 
+    # Bedrock AgentCore Memory Service
+    role.add_to_policy(
+        iam.PolicyStatement(
+            actions=["bedrock-agentcore:memory:*"],
+            resources=["*"],
+        )
+    )
+
     # SSM Parameter Store read
     role.add_to_policy(
         iam.PolicyStatement(
