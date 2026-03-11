@@ -289,3 +289,10 @@ class AgentCoreStack(Stack):
             value=execution_role.role_arn,
             description="AgentCore Execution Role ARN",
         )
+
+        CfnOutput(
+            self,
+            "CodeBuildProjectName",
+            value=codebuild_project.project_name,
+            description="CodeBuild project name for image builds",
+        )

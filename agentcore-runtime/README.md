@@ -83,17 +83,29 @@ On success the script prints the Runtime ARN, ECR URI, and a test invoke command
 
 After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. There are two ways to update the runtime when you change code.
 
-### Option 1: Re-deploy via CDK (recommended)
+### Option 1: Quick update via `update.sh` (recommended)
 
-Re-running `deploy.sh` will detect source code changes (via the S3 asset hash), trigger a CodeBuild build, push the new image, and update the runtime automatically.
+The `update.sh` script uploads your source to S3, triggers CodeBuild, waits for the build, and optionally updates the AgentCore Runtime hosting — all without a full `cdk deploy`.
 
 ```bash
-./deploy.sh --aoss-endpoint <collection-id> --region us-east-1
+# Build and update hosting automatically
+./update.sh --stack-name AgentCoreStack-rc3 --auto-update-hosting --region us-east-1 --profile ray-testing
+
+# Build only (reminds you to update hosting manually)
+./update.sh --stack-name AgentCoreStack-rc3 --region us-east-1 --profile ray-testing
 ```
 
-### Option 2: Manual ECR push (faster iteration)
+### Option 2: Full CDK re-deploy
 
-For quicker dev cycles without a full `cdk deploy`, build and push the Docker image directly:
+Re-running `deploy.sh` re-packages source, triggers CodeBuild, and updates all infrastructure. Use this when you need to change SSM parameters, IAM roles, or other stack resources — not just the container image.
+
+```bash
+./deploy.sh --aoss-endpoint <collection-id> --env rc3 --region us-east-1 --profile ray-testing
+```
+
+### Option 3: Manual ECR push (fastest iteration)
+
+For the quickest dev cycles, build and push the Docker image directly:
 
 ```bash
 # Get your ECR URI from cdk-outputs.json
@@ -113,7 +125,7 @@ aws bedrock-agentcore-control update-agent-runtime \
 
 The runtime ID is available in `cdk-outputs.json` under the `RuntimeId` key.
 
-The **DEFAULT** endpoint automatically points to the latest version once the update completes. No additional routing changes are needed.
+> **Note**: Pushing a new image with the same `:latest` tag does NOT automatically update the running AgentCore Runtime. You must call `update-agent-runtime` to trigger a new version deployment. The DEFAULT endpoint automatically points to the latest version once the update completes.
 
 ## Sales Agent CLI
 
