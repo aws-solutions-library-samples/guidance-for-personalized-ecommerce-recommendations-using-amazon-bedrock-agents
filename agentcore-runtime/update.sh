@@ -51,7 +51,22 @@ if [[ -n "$PROFILE" ]]; then
 fi
 
 # --- 1. Fetch stack outputs ---
-echo "Fetching stack outputs from ${STACK_NAME}..."
+echo "Checking stack ${STACK_NAME}..."
+STACK_STATUS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARGS \
+    --query "Stacks[0].StackStatus" --output text 2>&1) || {
+    echo "❌ Error: Stack '${STACK_NAME}' not found or not accessible."
+    exit 1
+}
+
+if [[ "$STACK_STATUS" != *"COMPLETE"* ]] || [[ "$STACK_STATUS" == *"DELETE"* ]]; then
+    echo "❌ Error: Stack '${STACK_NAME}' is in state '${STACK_STATUS}'. Expected a *_COMPLETE status."
+    echo "  Resolve the stack issue before running update."
+    exit 1
+fi
+
+echo "  Stack status: $STACK_STATUS ✅"
+echo ""
+echo "Fetching stack outputs..."
 OUTPUTS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARGS \
     --query "Stacks[0].Outputs" --output json)
 
