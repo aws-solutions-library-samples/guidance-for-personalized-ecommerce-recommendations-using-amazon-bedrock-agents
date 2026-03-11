@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Usage: ./update.sh --stack-name <stack-name> [--auto-update-hosting] [--region <region>] [--profile <profile>]
+# Usage: ./update_runtime.sh --stack-name <stack-name> [--auto-update-hosting] [--region <region>] [--profile <profile>]
 #
 # Uploads new source code to S3, triggers CodeBuild to build a new Docker image,
 # and optionally updates the AgentCore Runtime to pick up the new image.
@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Error: Unknown argument '$1'"
-            echo "Usage: ./update.sh --stack-name <stack-name> [--auto-update-hosting] [--region <region>] [--profile <profile>]"
+            echo "Usage: ./update_runtime.sh --stack-name <stack-name> [--auto-update-hosting] [--region <region>] [--profile <profile>]"
             exit 1
             ;;
     esac

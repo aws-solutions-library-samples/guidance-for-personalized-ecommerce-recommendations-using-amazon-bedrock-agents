@@ -83,16 +83,16 @@ On success the script prints the Runtime ARN, ECR URI, and a test invoke command
 
 After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. There are two ways to update the runtime when you change code.
 
-### Option 1: Quick update via `update.sh` (recommended)
+### Option 1: Quick update via `update_runtime.sh` (recommended)
 
-The `update.sh` script uploads your source to S3, triggers CodeBuild, waits for the build, and optionally updates the AgentCore Runtime hosting — all without a full `cdk deploy`.
+The `update_runtime.sh` script uploads your source to S3, triggers CodeBuild, waits for the build, and optionally updates the AgentCore Runtime hosting — all without a full `cdk deploy`.
 
 ```bash
 # Build and update hosting automatically
-./update.sh --stack-name AgentCoreStack-rc3 --auto-update-hosting --region us-east-1 --profile ray-testing
+./update_runtime.sh --stack-name AgentCoreStack-rc3 --auto-update-hosting --region us-east-1 --profile ray-testing
 
 # Build only (reminds you to update hosting manually)
-./update.sh --stack-name AgentCoreStack-rc3 --region us-east-1 --profile ray-testing
+./update_runtime.sh --stack-name AgentCoreStack-rc3 --region us-east-1 --profile ray-testing
 ```
 
 ### Option 2: Full CDK re-deploy
