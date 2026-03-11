@@ -26,7 +26,7 @@ You also need an AWS account with access to:
 ## Setup
 
 ```bash
-cd agent-core
+cd agentcore-runtime
 uv sync
 cp .env.example .env
 # Edit .env with your values (see Environment Variables below)
@@ -60,7 +60,7 @@ chmod +x deploy.sh
   --region us-east-1
 ```
 
-### CLI Arguments
+### Deploy Arguments
 
 | Argument | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -80,25 +80,50 @@ On success the script prints the Runtime ARN, ECR URI, and a test invoke command
 After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. When you rebuild and push a new image to ECR (e.g., via a subsequent `cdk deploy` or manual CodeBuild trigger), you need to tell AgentCore to pick up the new image:
 
 ```bash
-# Via AWS CLI
 aws bedrock-agent-runtime update-agent-runtime \
   --agent-runtime-arn <runtime-arn>
 ```
 
 The **DEFAULT** endpoint automatically points to the latest version once the update completes. No additional routing changes are needed.
 
-## Chat CLI
+## Sales Agent CLI
 
-Interactively chat with the deployed agent:
+A Click-based CLI for interacting with the deployed AgentCore Sales Agent. Supports invoking the agent, interactive chat, parameter management, log viewing, and deployment status checks.
+
+### Installation
+
+Dependencies are included in `requirements.txt`:
 
 ```bash
-python chat_cli.py --endpoint <url> --user-id <id>
+pip install -r requirements.txt
 ```
 
-- `--endpoint` — AgentCore Runtime agent endpoint URL (falls back to `AGENTCORE_ENDPOINT` env var)
-- `--user-id` — optional user ID for personalized interactions
+### Usage
 
-Type `exit` or `quit` to end the session.
+```bash
+python -m cli --stack-name <stack-name> [command]
+```
+
+The `--stack-name` option can also be set via the `AGENTCORE_STACK_NAME` environment variable.
+
+### Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `invoke -m "message"` | Send a single message | `python -m cli invoke -m "search for red shoes"` |
+| `chat` | Interactive REPL session | `python -m cli chat` |
+| `param set\|get\|list` | Manage Parameter Store values | `python -m cli param list` |
+| `logs --tail N --start "1h ago"` | View CloudWatch logs | `python -m cli logs --tail 50` |
+| `status` | Deployment status and ECS health | `python -m cli status` |
+| `version` | Show CLI version | `python -m cli version` |
+
+### Global Options
+
+| Option | Description |
+|--------|-------------|
+| `--stack-name` | CloudFormation stack name (or `AGENTCORE_STACK_NAME` env var) |
+| `-v` | Verbose output |
+| `-vv` | Debug-level output |
 
 ## Running Tests
 
@@ -121,6 +146,5 @@ See [`.env.example`](.env.example) for the full list. Key variables:
 | `USER_TABLE_NAME` | No | `user_table` | DynamoDB user table name |
 | `MODEL_ID` | No | `anthropic.claude-sonnet-4-20250514` | Bedrock model ID |
 | `PARAMETER_STORE_PREFIX` | No | `/agentcore/sales-agent/` | SSM parameter path prefix |
-| `AGENTCORE_ENDPOINT` | No | — | Agent endpoint URL (used by `chat_cli.py`) |
 
 At startup the agent reads configuration from AWS Systems Manager Parameter Store first, then falls back to environment variables for any missing values.

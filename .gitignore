@@ -25,3 +25,4 @@ cdk.out
 **/data/**.csv
 
 .env
+**/__pycache__
