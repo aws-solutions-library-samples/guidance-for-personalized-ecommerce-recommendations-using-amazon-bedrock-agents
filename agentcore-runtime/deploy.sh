@@ -3,15 +3,20 @@ set -euo pipefail
 
 # Usage: ./deploy.sh \
 #   --aoss-endpoint <endpoint> \
+#   [--env <environment>] \
+#   [--memory-id <id>] \
 #   [--item-table <name>] \
 #   [--user-table <name>] \
 #   [--recommender-arn <arn>] \
 #   [--network-mode PUBLIC|PRIVATE] \
 #   [--subnets <comma-separated>] \
 #   [--security-groups <comma-separated>] \
-#   [--region <region>]
+#   [--region <region>] \
+#   [--profile <profile>]
 
 AOSS_ENDPOINT=""
+ENV_NAME="production"
+MEMORY_ID=""
 ITEM_TABLE=""
 USER_TABLE=""
 RECOMMENDER_ARN=""
@@ -25,6 +30,14 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --aoss-endpoint)
             AOSS_ENDPOINT="$2"
+            shift 2
+            ;;
+        --env)
+            ENV_NAME="$2"
+            shift 2
+            ;;
+        --memory-id)
+            MEMORY_ID="$2"
             shift 2
             ;;
         --item-table)
@@ -61,7 +74,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Error: Unknown argument '$1'"
-            echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
+            echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--env <environment>] [--memory-id <id>] [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
             exit 1
             ;;
     esac
@@ -70,12 +83,19 @@ done
 # Validate required arguments
 if [[ -z "$AOSS_ENDPOINT" ]]; then
     echo "Error: --aoss-endpoint is required"
-    echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
+    echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--env <environment>] [--memory-id <id>] [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
     exit 1
 fi
 
+STACK_NAME="AgentCoreStack-${ENV_NAME}"
+OUTPUTS_FILE="cdk-outputs-${ENV_NAME}.json"
+
 # Build CDK context args
-CDK_CONTEXT_ARGS="--context aoss-endpoint=$AOSS_ENDPOINT"
+CDK_CONTEXT_ARGS="--context aoss-endpoint=$AOSS_ENDPOINT --context env-name=$ENV_NAME"
+
+if [[ -n "$MEMORY_ID" ]]; then
+    CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context memory-id=$MEMORY_ID"
+fi
 
 if [[ -n "$ITEM_TABLE" ]]; then
     CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context item-table-name=$ITEM_TABLE"
@@ -113,11 +133,12 @@ if [[ -n "$PROFILE" ]]; then
 fi
 
 # Deploy CDK stack
-echo "Deploying AgentCoreStack..."
+echo "Deploying ${STACK_NAME}..."
+echo "  Environment: $ENV_NAME"
 echo "  AOSS Endpoint: $AOSS_ENDPOINT"
-if ! cdk deploy AgentCoreStack \
+if ! cdk deploy "$STACK_NAME" \
     --app "python3 cdk/app.py" \
-    --outputs-file cdk-outputs.json \
+    --outputs-file "$OUTPUTS_FILE" \
     --require-approval never \
     $CDK_CONTEXT_ARGS \
     $REGION_ARGS \
@@ -126,15 +147,15 @@ if ! cdk deploy AgentCoreStack \
     exit 1
 fi
 
-# Extract outputs from cdk-outputs.json
+# Extract outputs from environment-specific cdk-outputs file
 echo "Extracting deployment outputs..."
-RUNTIME_ARN=$(python3 -c "import json; data=json.load(open('cdk-outputs.json')); print(data['AgentCoreStack']['RuntimeArn'])")
-ECR_URI=$(python3 -c "import json; data=json.load(open('cdk-outputs.json')); print(data['AgentCoreStack']['EcrRepositoryUri'])")
+RUNTIME_ARN=$(python3 -c "import json; data=json.load(open('${OUTPUTS_FILE}')); print(data['${STACK_NAME}']['RuntimeArn'])")
+ECR_URI=$(python3 -c "import json; data=json.load(open('${OUTPUTS_FILE}')); print(data['${STACK_NAME}']['EcrRepositoryUri'])")
 
 # Print deployment summary
 echo ""
 echo "========================================="
-echo "  Deployment Complete"
+echo "  Deployment Complete (${ENV_NAME})"
 echo "========================================="
 echo "  Runtime ARN:  $RUNTIME_ARN"
 echo "  ECR URI:      $ECR_URI"
