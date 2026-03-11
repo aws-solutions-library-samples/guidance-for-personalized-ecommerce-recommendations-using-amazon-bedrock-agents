@@ -1,0 +1,7 @@
+{
+  "AgentCoreStack": {
+    "EcrRepositoryUri": "718498700052.dkr.ecr.us-east-1.amazonaws.com/agentcorestack-agentcoreecrrepob0799e9d-1corukl7gd1z",
+    "RuntimeArn": "arn:aws:bedrock-agentcore:us-east-1:718498700052:runtime/agentcore_sales_agent-3iEHtZ9xPY",
+    "RuntimeId": "agentcore_sales_agent-3iEHtZ9xPY"
+  }
+}
