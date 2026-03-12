@@ -39,11 +39,13 @@ The `deploy.sh` script wraps `cdk deploy` to provision the full stack in a singl
 ```bash
 chmod +x deploy.sh
 ./deploy.sh --aoss-endpoint <collection-id> \
+  --env <environment> \
   --item-table <item-table-name> \
   --user-table <user-table-name> \
   --recommender-arn <recommender-arn> \
   --network-mode PUBLIC \
-  --region <region>
+  --region <region> \
+  --profile <profile>
 ```
 
 ### Deploy Arguments
@@ -51,6 +53,7 @@ chmod +x deploy.sh
 | Argument | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `--aoss-endpoint` | Yes | — | OpenSearch Serverless collection ID |
+| `--env` | No | `production` | Environment name (used in stack name and SSM prefix) |
 | `--item-table` | No | `item_table` | DynamoDB item table name |
 | `--user-table` | No | `user_table` | DynamoDB user table name |
 | `--recommender-arn` | No | — | Amazon Personalize recommender ARN |
@@ -60,6 +63,7 @@ chmod +x deploy.sh
 | `--security-groups` | If PRIVATE | — | Comma-separated security group IDs |
 | `--aoss-data-policy-name` | No | — | AOSS data access policy name (auto-adds execution role) |
 | `--region` | No | — | AWS region for deployment |
+| `--profile` | No | — | AWS CLI profile to use |
 
 On success the script prints the Runtime ARN, ECR URI, and a test invoke command.
 
