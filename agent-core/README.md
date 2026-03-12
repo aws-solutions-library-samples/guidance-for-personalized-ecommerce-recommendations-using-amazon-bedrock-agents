@@ -26,7 +26,7 @@ You also need an AWS account with access to:
 ## Setup
 
 ```bash
-cd agentcore-runtime
+cd agent-core
 uv sync --extra cdk --extra dev
 cp .env.example .env
 # Edit .env with your values (see Environment Variables below)

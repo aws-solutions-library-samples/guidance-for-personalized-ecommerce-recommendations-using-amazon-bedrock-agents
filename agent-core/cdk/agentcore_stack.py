@@ -54,7 +54,7 @@ class AgentCoreStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
-        # --- 2. S3 Asset — package agentcore-runtime/ directory ---
+        # --- 2. S3 Asset — package agent-core/ directory ---
         agent_core_dir = os.path.join(os.path.dirname(__file__), "..")
         source_asset = s3_assets.Asset(
             self,

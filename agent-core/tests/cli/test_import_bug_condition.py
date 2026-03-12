@@ -54,7 +54,7 @@ def _run_module_import(module_path: str):
 
 
 def _run_import_check(import_statement: str):
-    """Run a Python import statement in a subprocess with agentcore-runtime
+    """Run a Python import statement in a subprocess with agent-core
     as the working directory and on sys.path, simulating package-aware execution.
 
     This verifies that relative imports inside the cli package resolve correctly.
