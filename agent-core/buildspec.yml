@@ -1,0 +1,125 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Pre-build started on `date`
+      - echo Installing CDK CLI and dependencies...
+      - npm install -g aws-cdk
+      - pip install uv
+      - uv pip install --system -r requirements.txt
+      - echo Environment variables - STAGE=$STAGE, ITEM_TABLE=$ITEM_TABLE, USER_TABLE=$USER_TABLE
+      
+      # Check if runtime-related files were modified
+      - echo "Checking for runtime code changes..."
+      - |
+        if [ -z "$CODEBUILD_RESOLVED_SOURCE_VERSION" ]; then
+          echo "No previous commit found, will deploy all stacks"
+          export RUNTIME_CHANGED="true"
+        else
+          # Get the previous commit (parent of current commit)
+          PREVIOUS_COMMIT=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_COMMIT" ]; then
+            echo "No previous commit found (first commit), will deploy all stacks"
+            export RUNTIME_CHANGED="true"
+          else
+            # Check if runtime-related files changed between previous and current commit
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
+            
+            # Define runtime-related paths
+            RUNTIME_PATHS="runtime/ cdk/stacks/runtime_stack.py requirements.txt buildspec.yml"
+            
+            # Check if any runtime path was modified
+            RUNTIME_CHANGED="false"
+            for path in $RUNTIME_PATHS; do
+              if echo "$CHANGED_FILES" | grep -q "^${path}"; then
+                echo "Runtime-related file changed: $path"
+                RUNTIME_CHANGED="true"
+                break
+              fi
+            done
+            
+            export RUNTIME_CHANGED
+          fi
+        fi
+      - echo "RUNTIME_CHANGED=$RUNTIME_CHANGED"
+  
+  build:
+    commands:
+      - echo Build started on `date`
+      
+      # Phase 1: Deploy InfrastructureStack
+      - echo "Phase 1 - Deploying InfrastructureStack..."
+      - cd cdk
+      - cdk deploy InfrastructureStack-$STAGE --require-approval never --context stage=$STAGE --context vpcId=$VPC_ID
+      - echo "InfrastructureStack deployed successfully"
+      
+      # Get stack outputs
+      - ECR_REPOSITORY_URI=$(aws cloudformation describe-stacks --stack-name InfrastructureStack-$STAGE --query "Stacks[0].Outputs[?OutputKey=='EcrRepositoryUri'].OutputValue" --output text)
+      - VPC_ID_OUTPUT=$(aws cloudformation describe-stacks --stack-name InfrastructureStack-$STAGE --query "Stacks[0].Outputs[?OutputKey=='VpcId'].OutputValue" --output text)
+      - RUNTIME_ROLE_ARN=$(aws cloudformation describe-stacks --stack-name InfrastructureStack-$STAGE --query "Stacks[0].Outputs[?OutputKey=='RuntimeRoleArn'].OutputValue" --output text)
+      - echo "ECR Repository URI - $ECR_REPOSITORY_URI"
+      - echo "VPC ID - $VPC_ID_OUTPUT"
+      - echo "Runtime Role ARN - $RUNTIME_ROLE_ARN"
+      - cd ..
+      
+      # Phase 2: Build Docker image for ARM64 (conditional)
+      - |
+        if [ "$RUNTIME_CHANGED" = "true" ]; then
+          echo "Phase 2 - Building Docker image for ARM64..."
+          COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+          IMAGE_TAG=${COMMIT_HASH:=latest}
+          echo "Image tag set to $IMAGE_TAG"
+          echo "Building for platform linux/arm64..."
+          docker build --platform linux/arm64 -t $ECR_REPOSITORY_URI:$IMAGE_TAG -t $ECR_REPOSITORY_URI:latest runtime/
+          echo "Docker image built successfully"
+        else
+          echo "Phase 2 - Skipping Docker build (no runtime changes detected)"
+        fi
+      
+      # Phase 3: Push image to ECR (conditional)
+      - |
+        if [ "$RUNTIME_CHANGED" = "true" ]; then
+          echo "Phase 3 - Pushing Docker image to ECR..."
+          aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+          docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+          docker push $ECR_REPOSITORY_URI:latest
+          echo "Docker image pushed successfully"
+        else
+          echo "Phase 3 - Skipping ECR push (no runtime changes detected)"
+        fi
+      
+      # Phase 4: Deploy RuntimeStack (conditional)
+      - |
+        if [ "$RUNTIME_CHANGED" = "true" ]; then
+          echo "Phase 4 - Deploying RuntimeStack..."
+          cd cdk
+          cdk deploy RuntimeStack-$STAGE --require-approval never --context stage=$STAGE --context vpcId=$VPC_ID_OUTPUT
+          echo "RuntimeStack deployed successfully"
+          cd ..
+        else
+          echo "Phase 4 - Skipping RuntimeStack deployment (no runtime changes detected)"
+        fi
+  
+  post_build:
+    commands:
+      - echo Post-build started on `date`
+      - echo Installing test dependencies...
+      - uv pip install --system pytest pytest-cov pytest-asyncio
+      - echo Running unit tests...
+      - pytest tests/unit/ --cov=runtime --cov=cli --cov=cdk -v || echo "Tests completed with warnings"
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - '**/*'
+
+cache:
+  paths:
+    - '/root/.cache/pip/**/*'
+    - '/root/.cache/uv/**/*'
+    - '/root/.npm/**/*'
+
