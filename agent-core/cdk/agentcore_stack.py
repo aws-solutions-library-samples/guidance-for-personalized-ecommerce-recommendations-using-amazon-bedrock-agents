@@ -54,6 +54,25 @@ class AgentCoreStack(Stack):
         if memory_mode == "create" and memory_id:
             raise ValueError("memory-mode 'create' cannot be used with an explicit memory-id")
 
+        # --- CfnMemory Resource (conditional) ---
+        memory = None
+        if memory_mode == "create":
+            memory = bedrockagentcore.CfnMemory(
+                self,
+                "AgentCoreMemory",
+                name=f"agentcore_sales_agent_memory_{env_name}",
+                event_expiry_duration=3600,
+                description=f"Conversational memory for sales agent ({env_name})",
+                memory_strategies=[
+                    bedrockagentcore.CfnMemory.MemoryStrategyProperty(
+                        semantic_memory_strategy=bedrockagentcore.CfnMemory.SemanticMemoryStrategyProperty(
+                            name="conversational",
+                            description="Short-term conversational memory",
+                        )
+                    )
+                ],
+            )
+
         # --- 1. ECR Repository ---
         ecr_repo = ecr.Repository(
             self,
