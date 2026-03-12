@@ -73,6 +73,9 @@ class AgentCoreStack(Stack):
                 ],
             )
 
+        # --- Resolve effective memory ID ---
+        effective_memory_id = memory.attr_memory_id if memory_mode == "create" else memory_id
+
         # --- 1. ECR Repository ---
         ecr_repo = ecr.Repository(
             self,
@@ -237,12 +240,15 @@ class AgentCoreStack(Stack):
             protocol_configuration="HTTP",
             environment_variables={
                 "PARAMETER_STORE_PREFIX": f"/agentcore/sales-agent/{env_name}/",
-                "MEMORY_ID": memory_id,
+                "MEMORY_ID": effective_memory_id,
             },
         )
 
         # CfnRuntime depends on build completing first
         runtime.node.add_dependency(build_trigger)
+
+        if memory_mode == "create":
+            runtime.node.add_dependency(memory)
 
         # --- 7. SSM Parameters ---
         param_prefix = f"/agentcore/sales-agent/{env_name}"
