@@ -37,19 +37,19 @@ cp .env.example .env
 Install the AgentCore starter toolkit (provides the `agentcore` CLI):
 
 ```bash
-pip install bedrock-agentcore-starter-toolkit
+uv pip install bedrock-agentcore-starter-toolkit
 ```
 
 Start the agent locally with the AgentCore dev server:
 
 ```bash
-agentcore dev
+uv run agentcore dev
 ```
 
 Invoke the agent with a test prompt (in a separate terminal):
 
 ```bash
-agentcore invoke --dev '{"prompt": "search for red shoes"}'
+uv run agentcore invoke --dev '{"prompt": "search for red shoes"}'
 ```
 
 ## Deployment
@@ -107,10 +107,10 @@ A Click-based CLI for interacting with the deployed AgentCore Sales Agent. Suppo
 
 ### Installation
 
-Dependencies are included in `requirements.txt`:
+Dependencies are managed by `uv` and included in `pyproject.toml`:
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### Usage
