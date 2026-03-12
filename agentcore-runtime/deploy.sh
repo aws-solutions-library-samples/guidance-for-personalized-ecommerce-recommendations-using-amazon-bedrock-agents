@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Ensure we run from the script's directory (where pyproject.toml lives)
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 # Usage: ./deploy.sh \
 #   --aoss-endpoint <endpoint> \
 #   [--env <environment>] \

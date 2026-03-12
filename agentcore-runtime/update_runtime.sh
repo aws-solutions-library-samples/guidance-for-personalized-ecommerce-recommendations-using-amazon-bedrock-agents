@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Ensure we run from the script's directory (where pyproject.toml lives)
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 # Usage: ./update_runtime.sh --stack-name <stack-name> [--auto-update-hosting] [--region <region>] [--profile <profile>]
 #
 # Uploads new source code to S3, triggers CodeBuild to build a new Docker image,
