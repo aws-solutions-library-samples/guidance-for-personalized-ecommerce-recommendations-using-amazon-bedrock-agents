@@ -61,7 +61,7 @@ class AgentCoreStack(Stack):
                 self,
                 "AgentCoreMemory",
                 name=f"agentcore_sales_agent_memory_{env_name}",
-                event_expiry_duration=3600,
+                event_expiry_duration=3,
                 description=f"Conversational memory for sales agent ({env_name})",
                 memory_strategies=[
                     bedrockagentcore.CfnMemory.MemoryStrategyProperty(

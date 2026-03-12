@@ -28,3 +28,5 @@ cdk.out
 **/__pycache__
 
 .kiro/
+.cdkignore
+uv.lock
