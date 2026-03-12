@@ -37,13 +37,13 @@ cp .env.example .env
 Start the agent locally with the AgentCore dev server:
 
 ```bash
-agentcore dev
+bedrock-agentcore dev
 ```
 
 Invoke the agent with a test prompt:
 
 ```bash
-agentcore invoke --dev '{"prompt": "search for red shoes"}'
+bedrock-agentcore invoke --dev '{"prompt": "search for red shoes"}'
 ```
 
 ## Deployment
