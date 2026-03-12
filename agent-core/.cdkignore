@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.env
+cdk-outputs.json
+cdk.out
+tests
+.cdkignore
+.env.example
+README.md
+deploy.sh

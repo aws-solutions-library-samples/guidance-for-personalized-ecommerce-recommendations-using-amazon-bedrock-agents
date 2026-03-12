@@ -25,3 +25,6 @@ cdk.out
 **/data/**.csv
 
 .env
+**/__pycache__
+
+.kiro/
