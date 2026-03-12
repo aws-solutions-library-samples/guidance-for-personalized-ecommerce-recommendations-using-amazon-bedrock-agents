@@ -160,9 +160,14 @@ done
 echo ""
 if [[ "$AUTO_UPDATE_HOSTING" == "true" ]]; then
     echo "Updating AgentCore Runtime hosting..."
-    aws bedrock-agentcore-control update-agent-runtime \
-        --agent-runtime-id "$RUNTIME_ID" $AWS_ARGS --output json > /dev/null
-    echo "  ✅ Runtime update triggered. The DEFAULT endpoint will point to the new version once ready."
+    python3 -c "
+import boto3, sys
+session = boto3.Session($(if [[ -n "$PROFILE" ]]; then echo "profile_name='$PROFILE',"; fi) $(if [[ -n "$REGION" ]]; then echo "region_name='$REGION'"; fi))
+client = session.client('bedrock-agentcore-control')
+resp = client.update_agent_runtime(agentRuntimeId='$RUNTIME_ID')
+print(f'  ✅ Runtime update triggered (version: {resp.get(\"agentRuntimeVersion\", \"unknown\")})')
+print(f'  The DEFAULT endpoint will point to the new version once ready.')
+"
 else
     echo "========================================="
     echo "  ⚠️  Image built and pushed, but hosting was NOT updated."
@@ -170,8 +175,12 @@ else
     echo "  The new image is in ECR but AgentCore is still running the old version."
     echo "  To update hosting, run:"
     echo ""
-    echo "    aws bedrock-agentcore-control update-agent-runtime \\"
-    echo "      --agent-runtime-id $RUNTIME_ID $AWS_ARGS"
+    echo "    python3 -c \""
+    echo "import boto3"
+    echo "session = boto3.Session($(if [[ -n "$PROFILE" ]]; then echo "profile_name='$PROFILE', "; fi)$(if [[ -n "$REGION" ]]; then echo "region_name='$REGION'"; fi))"
+    echo "client = session.client('bedrock-agentcore-control')"
+    echo "client.update_agent_runtime(agentRuntimeId='$RUNTIME_ID')"
+    echo "\""
     echo "========================================="
 fi
 

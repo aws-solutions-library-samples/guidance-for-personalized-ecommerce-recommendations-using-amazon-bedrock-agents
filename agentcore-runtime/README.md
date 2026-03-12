@@ -119,13 +119,16 @@ docker build -t "$ECR_URI:latest" .
 docker push "$ECR_URI:latest"
 
 # Tell AgentCore to pick up the new image
-aws bedrock-agentcore-control update-agent-runtime \
-  --agent-runtime-id <runtime-id>
+python3 -c "
+import boto3
+client = boto3.client('bedrock-agentcore-control', region_name='<region>')
+client.update_agent_runtime(agentRuntimeId='<runtime-id>')
+"
 ```
 
 The runtime ID is available in `cdk-outputs.json` under the `RuntimeId` key.
 
-> **Note**: Pushing a new image with the same `:latest` tag does NOT automatically update the running AgentCore Runtime. You must call `update-agent-runtime` to trigger a new version deployment. The DEFAULT endpoint automatically points to the latest version once the update completes.
+> **Note**: Pushing a new image with the same `:latest` tag does NOT automatically update the running AgentCore Runtime. You must call `update_agent_runtime` to trigger a new version deployment. The DEFAULT endpoint automatically points to the latest version once the update completes.
 
 ## Sales Agent CLI
 
