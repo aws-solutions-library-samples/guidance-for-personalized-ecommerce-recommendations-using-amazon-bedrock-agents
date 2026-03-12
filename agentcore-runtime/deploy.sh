@@ -201,14 +201,40 @@ echo "  Or start an interactive chat:"
 echo "    uv run python3 -m cli --stack-name ${STACK_NAME} chat"
 echo ""
 if [[ -z "$AOSS_DATA_POLICY_NAME" ]]; then
+    # Look up data access policy name for the collection
+    DETECTED_POLICY=""
+    DETECTED_POLICY=$(uv run python3 -c "
+import boto3, json
+session = boto3.Session()
+client = session.client('opensearchserverless')
+resp = client.list_access_policies(type='data', maxResults=100)
+for p in resp.get('accessPolicySummaries', []):
+    detail = client.get_access_policy(type='data', name=p['name'])
+    body = json.loads(detail['accessPolicyDetail']['policy']) if isinstance(detail['accessPolicyDetail']['policy'], str) else detail['accessPolicyDetail']['policy']
+    rules = body if isinstance(body, list) else [body]
+    for rule in rules:
+        for res in rule.get('Rules', rule.get('rules', [])):
+            for col in res.get('Resource', res.get('resource', [])):
+                if '${AOSS_ENDPOINT}' in col:
+                    print(p['name'])
+                    raise SystemExit(0)
+" 2>/dev/null) || true
+
     echo "  ⚠️  WARNING: --aoss-data-policy-name was not provided."
     echo "  The execution role for this environment will NOT be automatically"
     echo "  added to the OpenSearch Serverless data access policy."
     echo "  You must manually add the role to the AOSS data access policy,"
     echo "  or the agent will fail to query the product search index."
     echo ""
-    echo "  To automate this, re-deploy with:"
-    echo "    ./deploy.sh ... --aoss-data-policy-name <policy-name>"
+    if [[ -n "$DETECTED_POLICY" ]]; then
+        echo "  Detected data access policy for collection ${AOSS_ENDPOINT}: ${DETECTED_POLICY}"
+        echo ""
+        echo "  To automate this, re-deploy with:"
+        echo "    ./deploy.sh ... --aoss-data-policy-name ${DETECTED_POLICY}"
+    else
+        echo "  To automate this, re-deploy with:"
+        echo "    ./deploy.sh ... --aoss-data-policy-name <policy-name>"
+    fi
     echo ""
 fi
 echo "========================================="
