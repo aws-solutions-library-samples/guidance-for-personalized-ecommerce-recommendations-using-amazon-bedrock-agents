@@ -44,6 +44,15 @@ class AgentCoreStack(Stack):
         security_groups = self.node.try_get_context("security-groups") or ""
         env_name = env_name or self.node.try_get_context("env-name") or "production"
         memory_id = self.node.try_get_context("memory-id") or ""
+        memory_mode = self.node.try_get_context("memory-mode") or "create"
+
+        # --- Validation guard clauses ---
+        if memory_mode not in ("create", "external"):
+            raise ValueError(f"memory-mode must be 'create' or 'external', got '{memory_mode}'")
+        if memory_mode == "external" and not memory_id:
+            raise ValueError("memory-mode 'external' requires a memory-id to be provided")
+        if memory_mode == "create" and memory_id:
+            raise ValueError("memory-mode 'create' cannot be used with an explicit memory-id")
 
         # --- 1. ECR Repository ---
         ecr_repo = ecr.Repository(
