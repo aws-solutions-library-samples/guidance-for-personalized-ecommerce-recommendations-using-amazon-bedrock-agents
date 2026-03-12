@@ -181,8 +181,8 @@ fi
 
 # Extract outputs from environment-specific cdk-outputs file
 echo "Extracting deployment outputs..."
-RUNTIME_ARN=$(python3 -c "import json; data=json.load(open('${OUTPUTS_FILE}')); print(data['${STACK_NAME}']['RuntimeArn'])")
-ECR_URI=$(python3 -c "import json; data=json.load(open('${OUTPUTS_FILE}')); print(data['${STACK_NAME}']['EcrRepositoryUri'])")
+RUNTIME_ARN=$(uv run python3 -c "import json; data=json.load(open('${OUTPUTS_FILE}')); print(data['${STACK_NAME}']['RuntimeArn'])")
+ECR_URI=$(uv run python3 -c "import json; data=json.load(open('${OUTPUTS_FILE}')); print(data['${STACK_NAME}']['EcrRepositoryUri'])")
 
 # Print deployment summary
 echo ""
@@ -193,10 +193,10 @@ echo "  Runtime ARN:  $RUNTIME_ARN"
 echo "  ECR URI:      $ECR_URI"
 echo ""
 echo "  Test with the CLI:"
-echo "    python -m cli --stack-name ${STACK_NAME} invoke -m \"search for red shoes\""
+echo "    uv run python3 -m cli --stack-name ${STACK_NAME} invoke -m \"search for red shoes\""
 echo ""
 echo "  Or start an interactive chat:"
-echo "    python -m cli --stack-name ${STACK_NAME} chat"
+echo "    uv run python3 -m cli --stack-name ${STACK_NAME} chat"
 echo ""
 if [[ -z "$AOSS_DATA_POLICY_NAME" ]]; then
     echo "  ⚠️  WARNING: --aoss-data-policy-name was not provided."
