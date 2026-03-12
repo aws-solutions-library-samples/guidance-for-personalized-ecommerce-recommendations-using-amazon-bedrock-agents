@@ -26,3 +26,5 @@ cdk.out
 
 .env
 **/__pycache__
+
+.kiro/
