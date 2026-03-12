@@ -65,7 +65,7 @@ class TestHelpPreservation:
     **Validates: Requirements 3.1**
     """
 
-    EXPECTED_COMMANDS = {"chat", "invoke", "logs", "param", "status", "version"}
+    EXPECTED_COMMANDS = {"chat", "invoke", "logs", "status", "version"}
 
     def test_module_help_exits_zero(self):
         """``python -m cli --help`` must exit 0."""
@@ -146,7 +146,7 @@ class TestImportPreservation:
     def test_cli_group_has_expected_commands(self):
         """The ``cli`` Click group must contain all expected commands."""
         from cli.sales_agent_cli import cli
-        expected = {"version", "invoke", "chat", "param", "logs", "status"}
+        expected = {"version", "invoke", "chat", "logs", "status"}
         actual = set(cli.commands.keys())
         assert expected == actual, f"Expected {expected}, got {actual}"
 
@@ -200,5 +200,5 @@ class TestCLICommandsProperty:
         runner = CliRunner()
         result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
-        for cmd in ["chat", "invoke", "logs", "param", "status", "version"]:
+        for cmd in ["chat", "invoke", "logs", "status", "version"]:
             assert cmd in result.output

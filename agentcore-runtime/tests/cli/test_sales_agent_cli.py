@@ -41,8 +41,7 @@ class TestGetCLI:
     def test_get_cli_raises_error_when_no_stack_name(self):
         runner = CliRunner()
         # Invoke a command that calls _get_cli without providing stack name
-        # Use 'param list' since it triggers _get_cli via the param group
-        result = runner.invoke(cli, ["param", "list"])
+        result = runner.invoke(cli, ["logs"])
         assert result.exit_code != 0
         assert "Stack name is required" in result.output
 
@@ -54,6 +53,6 @@ class TestGetCLI:
         mock_validate_stack.return_value = {}
         mock_validate_creds.return_value = {"Arn": "arn:aws:iam::123:user/test"}
         runner = CliRunner()
-        result = runner.invoke(cli, ["--stack-name", "TestStack", "param", "list"])
+        result = runner.invoke(cli, ["--stack-name", "TestStack", "logs"])
         mock_validate_creds.assert_called_once()
         mock_validate_stack.assert_called_once()
