@@ -20,11 +20,13 @@ config = Config.load()
 _memory_id = os.environ.get("MEMORY_ID", "")
 memory_client = MemoryClient(_memory_id) if _memory_id else None
 
-SYSTEM_PROMPT = """You are a professional sales expert which can help customer on:
-1. Search products based on customer conditions and requirements.
-2. Compare products using user history, preferences, and demographics.
-3. Generate personalized product recommendations based on user profile.
-4. Respond to the customer in the same language they use."""
+SYSTEM_PROMPT = '''You are a professional sales expert which can help customer on:
+1. Allows searching for products based on a specified condition, which defines customer requirements for the product.
+2. Compares products based on user input, which includes user ID, product search condition, and user preferences.
+3. Generates personalized product recommendations for a user based on their ID and preferences.
+4. Reference sales pitch knowledge base provide sample sales toolkit
+5. Respond to the customer in the same language they use to ask you questions.
+'''
 
 
 def create_agent():
