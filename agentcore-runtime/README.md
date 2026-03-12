@@ -56,14 +56,14 @@ chmod +x deploy.sh
 | `--env` | No | `production` | Environment name (used in stack name and SSM prefix) |
 | `--item-table` | No | `item_table` | DynamoDB item table name |
 | `--user-table` | No | `user_table` | DynamoDB user table name |
-| `--recommender-arn` | No | — | Amazon Personalize recommender ARN |
+| `--recommender-arn` | Yes | — | Amazon Personalize recommender ARN |
 | `--model-id` | No | `us.anthropic.claude-sonnet-4-20250514-v1:0` | Bedrock model/inference profile ID |
 | `--network-mode` | No | `PUBLIC` | `PUBLIC` or `PRIVATE` |
 | `--subnets` | If PRIVATE | — | Comma-separated subnet IDs |
 | `--security-groups` | If PRIVATE | — | Comma-separated security group IDs |
 | `--aoss-data-policy-name` | No | — | AOSS data access policy name (auto-adds execution role) |
 | `--region` | No | — | AWS region for deployment |
-| `--profile` | No | — | AWS CLI profile to use |
+| `--profile` | Yes | — | AWS CLI profile to use |
 
 On success the script prints the Runtime ARN, ECR URI, and a test invoke command.
 

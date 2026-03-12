@@ -95,7 +95,16 @@ done
 # Validate required arguments
 if [[ -z "$AOSS_ENDPOINT" ]]; then
     echo "Error: --aoss-endpoint is required"
-    echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--env <environment>] [--memory-id <id>] [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
+    exit 1
+fi
+
+if [[ -z "$RECOMMENDER_ARN" ]]; then
+    echo "Error: --recommender-arn is required"
+    exit 1
+fi
+
+if [[ -z "$PROFILE" ]]; then
+    echo "Error: --profile is required"
     exit 1
 fi
 
