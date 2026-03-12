@@ -111,16 +111,6 @@ class SalesAgentCLI:
             "Ensure the stack has a 'RuntimeArn' output or a runtime is deployed."
         )
 
-    def get_ssm_prefix(self) -> str:
-        """Derive SSM prefix from stack outputs or default to /{stack_name}/."""
-        prefix = self.stack_outputs.get("ParameterStorePrefix")
-        if prefix:
-            if not prefix.startswith("/"):
-                prefix = "/" + prefix
-            if not prefix.endswith("/"):
-                prefix = prefix + "/"
-            return prefix
-        return f"/{self.stack_name}/"
 
     def get_log_group(self) -> str:
         """Derive log group from RuntimeId: /aws/bedrock-agentcore/runtimes/{id}-DEFAULT."""
@@ -186,76 +176,6 @@ def _get_cli(ctx):
     cli_instance.validate_stack()
     ctx.obj["cli"] = cli_instance
     return cli_instance
-
-
-@cli.group()
-@click.pass_context
-def param(ctx):
-    """Manage Parameter Store values for the deployment."""
-    _get_cli(ctx)
-
-
-@param.command("set")
-@click.option("--key", required=True, help="Parameter key")
-@click.option("--value", required=True, help="Parameter value")
-@click.pass_context
-def param_set(ctx, key, value):
-    """Set a parameter value."""
-    cli_instance = ctx.obj["cli"]
-    prefix = cli_instance.get_ssm_prefix()
-    full_path = f"{prefix}{key}"
-    ssm = cli_instance.create_client("ssm")
-    try:
-        ssm.put_parameter(
-            Name=full_path, Value=value, Type="String", Overwrite=True
-        )
-        click.echo(f"Set parameter '{full_path}' = '{value}'")
-    except ClientError as exc:
-        error_msg = exc.response["Error"].get("Message", str(exc))
-        raise click.ClickException(f"Failed to set parameter: {error_msg}")
-
-
-@param.command("get")
-@click.option("--key", required=True, help="Parameter key")
-@click.pass_context
-def param_get(ctx, key):
-    """Get a parameter value."""
-    cli_instance = ctx.obj["cli"]
-    prefix = cli_instance.get_ssm_prefix()
-    full_path = f"{prefix}{key}"
-    ssm = cli_instance.create_client("ssm")
-    try:
-        response = ssm.get_parameter(Name=full_path)
-        param_value = response["Parameter"]["Value"]
-        click.echo(f"{full_path} = {param_value}")
-    except ClientError as exc:
-        error_code = exc.response["Error"].get("Code", "")
-        if error_code == "ParameterNotFound":
-            raise click.ClickException(
-                f"Parameter '{key}' not found under prefix '{prefix}'"
-            )
-        error_msg = exc.response["Error"].get("Message", str(exc))
-        raise click.ClickException(f"Failed to get parameter: {error_msg}")
-
-
-@param.command("list")
-@click.pass_context
-def param_list(ctx):
-    """List all parameters under the stack prefix."""
-    cli_instance = ctx.obj["cli"]
-    prefix = cli_instance.get_ssm_prefix()
-    ssm = cli_instance.create_client("ssm")
-    try:
-        response = ssm.get_parameters_by_path(Path=prefix, Recursive=True)
-        parameters = response.get("Parameters", [])
-        if not parameters:
-            click.echo(f"No parameters found under '{prefix}'")
-            return
-        for p in parameters:
-            click.echo(f"{p['Name']} = {p['Value']}")
-    except ClientError as exc:
-        error_msg = exc.response["Error"].get("Message", str(exc))
-        raise click.ClickException(f"Failed to list parameters: {error_msg}")
 
 
 @cli.command()

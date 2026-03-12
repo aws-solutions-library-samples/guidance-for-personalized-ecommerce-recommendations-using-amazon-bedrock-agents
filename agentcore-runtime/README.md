@@ -113,7 +113,6 @@ The `--stack-name` option can also be set via the `AGENTCORE_STACK_NAME` environ
 |---------|-------------|---------|
 | `invoke -m "message"` | Send a single message | `uv run python3 -m cli invoke -m "search for red shoes"` |
 | `chat` | Interactive REPL session | `uv run python3 -m cli chat` |
-| `param set\|get\|list` | Manage Parameter Store values | `uv run python3 -m cli param list` |
 | `logs --tail N --start "1h ago"` | View CloudWatch logs | `uv run python3 -m cli logs --tail 50` |
 | `status` | Deployment status and ECS health | `uv run python3 -m cli status` |
 | `version` | Show CLI version | `uv run python3 -m cli version` |

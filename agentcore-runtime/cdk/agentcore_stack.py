@@ -296,10 +296,3 @@ class AgentCoreStack(Stack):
             value=codebuild_project.project_name,
             description="CodeBuild project name for image builds",
         )
-
-        CfnOutput(
-            self,
-            "ParameterStorePrefix",
-            value=f"{param_prefix}/",
-            description="SSM Parameter Store prefix for this environment",
-        )
