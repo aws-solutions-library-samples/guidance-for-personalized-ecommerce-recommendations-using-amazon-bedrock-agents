@@ -195,7 +195,7 @@ class PerformanceMetrics:
     "outputs": {
         "RuntimeArn": "arn:aws:bedrock-agentcore:...",
         "RuntimeId": "agentcore_sales_agent-XXXXX",
-        "EcrRepositoryUri": "718498700052.dkr.ecr.us-east-1.amazonaws.com/...",
+        "EcrRepositoryUri": "<account-id>.dkr.ecr.<region>.amazonaws.com/...",
     }
 }
 ```
