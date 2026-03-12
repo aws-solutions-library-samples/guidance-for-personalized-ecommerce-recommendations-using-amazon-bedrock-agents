@@ -53,7 +53,7 @@ fi
 
 # --- 1. Fetch stack outputs ---
 echo "Checking stack ${STACK_NAME}..."
-STACK_STATUS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARGS \
+STACK_STATUS=$(uv run aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARGS \
     --query "Stacks[0].StackStatus" --output text 2>&1) || {
     echo "❌ Error: Stack '${STACK_NAME}' not found or not accessible."
     exit 1
@@ -68,7 +68,7 @@ fi
 echo "  Stack status: $STACK_STATUS ✅"
 echo ""
 echo "Fetching stack outputs..."
-OUTPUTS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARGS \
+OUTPUTS=$(uv run aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARGS \
     --query "Stacks[0].Outputs" --output json)
 
 get_output() {
@@ -87,7 +87,7 @@ CODEBUILD_PROJECT=$(get_output "CodeBuildProjectName")
 # Fallback: look up CodeBuild project from stack resources if output not available
 if [[ -z "$CODEBUILD_PROJECT" ]]; then
     echo "  CodeBuildProjectName output not found, looking up from stack resources..."
-    CODEBUILD_PROJECT=$(aws cloudformation describe-stack-resources \
+    CODEBUILD_PROJECT=$(uv run aws cloudformation describe-stack-resources \
         --stack-name "$STACK_NAME" $AWS_ARGS \
         --query "StackResources[?ResourceType=='AWS::CodeBuild::Project'].PhysicalResourceId" \
         --output text)
@@ -110,7 +110,7 @@ TMPDIR=$(mktemp -d)
 ARCHIVE="$TMPDIR/source.zip"
 
 # Get the S3 source bucket/key from the CodeBuild project
-SOURCE_INFO=$(aws codebuild batch-get-projects --names "$CODEBUILD_PROJECT" $AWS_ARGS \
+SOURCE_INFO=$(uv run aws codebuild batch-get-projects --names "$CODEBUILD_PROJECT" $AWS_ARGS \
     --query "projects[0].source" --output json)
 S3_BUCKET=$(echo "$SOURCE_INFO" | uv run python3 -c "import sys,json; d=json.load(sys.stdin); print(d['location'].split('/')[0])")
 S3_KEY=$(echo "$SOURCE_INFO" | uv run python3 -c "import sys,json; d=json.load(sys.stdin); loc=d['location']; print('/'.join(loc.split('/')[1:]))")
@@ -124,14 +124,14 @@ echo "  S3 Source: s3://$S3_BUCKET/$S3_KEY"
        ".hypothesis/*" ".pytest_cache/*") > /dev/null
 
 echo "  Uploading source to S3..."
-aws s3 cp "$ARCHIVE" "s3://$S3_BUCKET/$S3_KEY" $AWS_ARGS > /dev/null
+uv run aws s3 cp "$ARCHIVE" "s3://$S3_BUCKET/$S3_KEY" $AWS_ARGS > /dev/null
 rm -rf "$TMPDIR"
 echo "  ✅ Source uploaded"
 
 # --- 3. Trigger CodeBuild ---
 echo ""
 echo "Triggering CodeBuild..."
-BUILD_RESPONSE=$(aws codebuild start-build --project-name "$CODEBUILD_PROJECT" $AWS_ARGS --output json)
+BUILD_RESPONSE=$(uv run aws codebuild start-build --project-name "$CODEBUILD_PROJECT" $AWS_ARGS --output json)
 BUILD_ID=$(echo "$BUILD_RESPONSE" | uv run python3 -c "import sys,json; print(json.load(sys.stdin)['build']['id'])")
 echo "  Build ID: $BUILD_ID"
 
@@ -139,7 +139,7 @@ echo "  Build ID: $BUILD_ID"
 echo "  Waiting for build to complete..."
 while true; do
     sleep 15
-    BUILD_STATUS=$(aws codebuild batch-get-builds --ids "$BUILD_ID" $AWS_ARGS \
+    BUILD_STATUS=$(uv run aws codebuild batch-get-builds --ids "$BUILD_ID" $AWS_ARGS \
         --query "builds[0].buildStatus" --output text)
     case "$BUILD_STATUS" in
         SUCCEEDED)
