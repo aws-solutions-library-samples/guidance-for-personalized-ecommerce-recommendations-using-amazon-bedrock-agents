@@ -72,7 +72,7 @@ OUTPUTS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" $AWS_ARG
     --query "Stacks[0].Outputs" --output json)
 
 get_output() {
-    echo "$OUTPUTS" | python3 -c "
+    echo "$OUTPUTS" | uv run python3 -c "
 import sys, json
 outputs = json.load(sys.stdin)
 matches = [o['OutputValue'] for o in outputs if o['OutputKey'] == '$1']
@@ -112,8 +112,8 @@ ARCHIVE="$TMPDIR/source.zip"
 # Get the S3 source bucket/key from the CodeBuild project
 SOURCE_INFO=$(aws codebuild batch-get-projects --names "$CODEBUILD_PROJECT" $AWS_ARGS \
     --query "projects[0].source" --output json)
-S3_BUCKET=$(echo "$SOURCE_INFO" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['location'].split('/')[0])")
-S3_KEY=$(echo "$SOURCE_INFO" | python3 -c "import sys,json; d=json.load(sys.stdin); loc=d['location']; print('/'.join(loc.split('/')[1:]))")
+S3_BUCKET=$(echo "$SOURCE_INFO" | uv run python3 -c "import sys,json; d=json.load(sys.stdin); print(d['location'].split('/')[0])")
+S3_KEY=$(echo "$SOURCE_INFO" | uv run python3 -c "import sys,json; d=json.load(sys.stdin); loc=d['location']; print('/'.join(loc.split('/')[1:]))")
 
 echo "  S3 Source: s3://$S3_BUCKET/$S3_KEY"
 
@@ -132,7 +132,7 @@ echo "  ✅ Source uploaded"
 echo ""
 echo "Triggering CodeBuild..."
 BUILD_RESPONSE=$(aws codebuild start-build --project-name "$CODEBUILD_PROJECT" $AWS_ARGS --output json)
-BUILD_ID=$(echo "$BUILD_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['build']['id'])")
+BUILD_ID=$(echo "$BUILD_RESPONSE" | uv run python3 -c "import sys,json; print(json.load(sys.stdin)['build']['id'])")
 echo "  Build ID: $BUILD_ID"
 
 # Poll until build completes
@@ -161,7 +161,7 @@ done
 echo ""
 if [[ "$AUTO_UPDATE_HOSTING" == "true" ]]; then
     echo "Updating AgentCore Runtime hosting..."
-    python3 << PYEOF
+    uv run python3 << PYEOF
 import boto3, json
 
 session = boto3.Session(
