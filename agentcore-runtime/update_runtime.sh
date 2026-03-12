@@ -48,6 +48,7 @@ if [[ -n "$REGION" ]]; then
 fi
 if [[ -n "$PROFILE" ]]; then
     AWS_ARGS="$AWS_ARGS --profile $PROFILE"
+    export AWS_PROFILE="$PROFILE"
 fi
 
 # --- 1. Fetch stack outputs ---

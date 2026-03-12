@@ -108,6 +108,9 @@ if [[ -z "$PROFILE" ]]; then
     exit 1
 fi
 
+# Export AWS_PROFILE early so all subprocesses (cdk, uv run, python3) inherit it
+export AWS_PROFILE="$PROFILE"
+
 STACK_NAME="AgentCoreStack-${ENV_NAME}"
 OUTPUTS_FILE="cdk-outputs-${ENV_NAME}.json"
 
@@ -158,7 +161,6 @@ fi
 PROFILE_ARGS=""
 if [[ -n "$PROFILE" ]]; then
     PROFILE_ARGS="--profile $PROFILE"
-    export AWS_PROFILE="$PROFILE"
 fi
 
 # Ensure cdk package is importable from the project root
