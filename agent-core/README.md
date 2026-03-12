@@ -6,7 +6,7 @@ A conversational sales assistant built with the [Strands Agents SDK](https://git
 - **Product Comparison** — compares products using user profile, purchase history, and preferences via Bedrock Claude
 - **Personalized Recommendations** — retrieves recommendations from Amazon Personalize enriched with user context
 
-The agent is packaged as an ARM64 Docker image, deployed via a CDK stack that provisions ECR, CodeBuild, SSM Parameter Store, and a `CfnRuntime` resource.
+The agent is packaged as an ARM64 Docker image, deployed via a CDK stack that provisions ECR, CodeBuild, SSM Parameter Store, a `CfnMemory` resource (optional), and a `CfnRuntime` resource.
 
 ## Prerequisites
 
@@ -40,12 +40,19 @@ The `deploy.sh` script wraps `cdk deploy` to provision the full stack in a singl
 
 ```bash
 chmod +x deploy.sh
+
+# Create mode (default) — provisions a new CfnMemory resource automatically
 ./deploy.sh --aoss-endpoint <collection-id> \
   --env <environment> \
-  --item-table <item-table-name> \
-  --user-table <user-table-name> \
   --recommender-arn <recommender-arn> \
-  --network-mode PUBLIC \
+  --region <region> \
+  --profile <profile>
+
+# External mode — use a pre-existing memory resource
+./deploy.sh --aoss-endpoint <collection-id> \
+  --env <environment> \
+  --memory-mode external --memory-id <memory-id> \
+  --recommender-arn <recommender-arn> \
   --region <region> \
   --profile <profile>
 ```
@@ -56,6 +63,8 @@ chmod +x deploy.sh
 |----------|----------|---------|-------------|
 | `--aoss-endpoint` | Yes | — | OpenSearch Serverless collection ID |
 | `--env` | No | `production` | Environment name (used in stack name and SSM prefix) |
+| `--memory-mode` | No | `create` | Memory provisioning mode: `create` (provision new) or `external` (use existing) |
+| `--memory-id` | If external | — | External memory resource ID (required when `--memory-mode external`, infers external mode if used alone) |
 | `--item-table` | No | `item_table` | DynamoDB item table name |
 | `--user-table` | No | `user_table` | DynamoDB user table name |
 | `--recommender-arn` | Yes | — | Amazon Personalize recommender ARN |
@@ -66,6 +75,15 @@ chmod +x deploy.sh
 | `--aoss-data-policy-name` | No | — | AOSS data access policy name (auto-adds execution role) |
 | `--region` | No | — | AWS region for deployment |
 | `--profile` | Yes | — | AWS CLI profile to use |
+
+### Memory Provisioning
+
+The stack supports two memory modes controlled by `--memory-mode`:
+
+- `create` (default) — The stack provisions its own `CfnMemory` resource with a semantic memory strategy for conversational short-term memory, and automatically wires the generated memory ID to the runtime. No manual memory setup needed.
+- `external` — Uses a pre-existing memory resource ID passed via `--memory-id`. Useful for sharing a single memory resource across multiple stacks.
+
+For backward compatibility, passing `--memory-id` without `--memory-mode` automatically sets the mode to `external`.
 
 On success the script prints the Runtime ARN, ECR URI, and a test invoke command.
 
@@ -145,6 +163,7 @@ See [`.env.example`](.env.example) for the full list. Key variables:
 | `ITEM_TABLE_NAME` | No | `item_table` | DynamoDB item table name |
 | `USER_TABLE_NAME` | No | `user_table` | DynamoDB user table name |
 | `MODEL_ID` | No | — | Bedrock model/inference profile ID (set via SSM) |
+| `MEMORY_ID` | No | — | AgentCore memory resource ID (auto-set in create mode) |
 | `PARAMETER_STORE_PREFIX` | No | `/agentcore/sales-agent/` | SSM parameter path prefix |
 
 At startup the agent reads configuration from AWS Systems Manager Parameter Store first, then falls back to environment variables for any missing values.

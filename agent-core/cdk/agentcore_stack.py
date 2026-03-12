@@ -44,6 +44,37 @@ class AgentCoreStack(Stack):
         security_groups = self.node.try_get_context("security-groups") or ""
         env_name = env_name or self.node.try_get_context("env-name") or "production"
         memory_id = self.node.try_get_context("memory-id") or ""
+        memory_mode = self.node.try_get_context("memory-mode") or "create"
+
+        # --- Validation guard clauses ---
+        if memory_mode not in ("create", "external"):
+            raise ValueError(f"memory-mode must be 'create' or 'external', got '{memory_mode}'")
+        if memory_mode == "external" and not memory_id:
+            raise ValueError("memory-mode 'external' requires a memory-id to be provided")
+        if memory_mode == "create" and memory_id:
+            raise ValueError("memory-mode 'create' cannot be used with an explicit memory-id")
+
+        # --- CfnMemory Resource (conditional) ---
+        memory = None
+        if memory_mode == "create":
+            memory = bedrockagentcore.CfnMemory(
+                self,
+                "AgentCoreMemory",
+                name=f"agentcore_sales_agent_memory_{env_name}",
+                event_expiry_duration=3,
+                description=f"Conversational memory for sales agent ({env_name})",
+                memory_strategies=[
+                    bedrockagentcore.CfnMemory.MemoryStrategyProperty(
+                        semantic_memory_strategy=bedrockagentcore.CfnMemory.SemanticMemoryStrategyProperty(
+                            name="conversational",
+                            description="Short-term conversational memory",
+                        )
+                    )
+                ],
+            )
+
+        # --- Resolve effective memory ID ---
+        effective_memory_id = memory.attr_memory_id if memory_mode == "create" else memory_id
 
         # --- 1. ECR Repository ---
         ecr_repo = ecr.Repository(
@@ -209,12 +240,15 @@ class AgentCoreStack(Stack):
             protocol_configuration="HTTP",
             environment_variables={
                 "PARAMETER_STORE_PREFIX": f"/agentcore/sales-agent/{env_name}/",
-                "MEMORY_ID": memory_id,
+                "MEMORY_ID": effective_memory_id,
             },
         )
 
         # CfnRuntime depends on build completing first
         runtime.node.add_dependency(build_trigger)
+
+        if memory_mode == "create":
+            runtime.node.add_dependency(memory)
 
         # --- 7. SSM Parameters ---
         param_prefix = f"/agentcore/sales-agent/{env_name}"
@@ -296,3 +330,11 @@ class AgentCoreStack(Stack):
             value=codebuild_project.project_name,
             description="CodeBuild project name for image builds",
         )
+
+        CfnOutput(
+            self,
+            "MemoryId",
+            value=effective_memory_id,
+            description="Memory resource ID",
+        )
+
