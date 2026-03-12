@@ -53,11 +53,11 @@ The `deploy.sh` script wraps `cdk deploy` to provision the full stack in a singl
 ```bash
 chmod +x deploy.sh
 ./deploy.sh --aoss-endpoint <collection-id> \
-  --item-table item_table \
-  --user-table user_table \
-  --recommender-arn <arn> \
+  --item-table <item-table-name> \
+  --user-table <user-table-name> \
+  --recommender-arn <recommender-arn> \
   --network-mode PUBLIC \
-  --region us-east-1
+  --region <region>
 ```
 
 ### Deploy Arguments
@@ -81,54 +81,19 @@ On success the script prints the Runtime ARN, ECR URI, and a test invoke command
 
 ## Updating the Runtime
 
-After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. There are two ways to update the runtime when you change code.
+After the initial deployment, `CfnRuntime` is created with the `:latest` image tag. Use `update_runtime.sh` to rebuild and redeploy when you change code.
 
-### Option 1: Quick update via `update_runtime.sh` (recommended)
-
-The `update_runtime.sh` script uploads your source to S3, triggers CodeBuild, waits for the build, and optionally updates the AgentCore Runtime hosting — all without a full `cdk deploy`.
+The script uploads your source to S3, triggers CodeBuild, waits for the build, and optionally updates the AgentCore Runtime hosting — all without a full `cdk deploy`.
 
 ```bash
 # Build and update hosting automatically
-./update_runtime.sh --stack-name AgentCoreStack-rc3 --auto-update-hosting --region us-east-1 --profile ray-testing
+./update_runtime.sh --stack-name <stack-name> --auto-update-hosting --region <region> --profile <profile>
 
 # Build only (reminds you to update hosting manually)
-./update_runtime.sh --stack-name AgentCoreStack-rc3 --region us-east-1 --profile ray-testing
+./update_runtime.sh --stack-name <stack-name> --region <region> --profile <profile>
 ```
 
-### Option 2: Full CDK re-deploy
-
-Re-running `deploy.sh` re-packages source, triggers CodeBuild, and updates all infrastructure. Use this when you need to change SSM parameters, IAM roles, or other stack resources — not just the container image.
-
-```bash
-./deploy.sh --aoss-endpoint <collection-id> --env rc3 --region us-east-1 --profile ray-testing
-```
-
-### Option 3: Manual ECR push (fastest iteration)
-
-For the quickest dev cycles, build and push the Docker image directly:
-
-```bash
-# Get your ECR URI from cdk-outputs.json
-ECR_URI=$(python3 -c "import json; d=json.load(open('cdk-outputs-production.json')); print(d['AgentCoreStack-production']['EcrRepositoryUri'])")
-
-# Authenticate with ECR
-aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin "$ECR_URI"
-
-# Build and push (from agentcore-runtime/)
-docker build -t "$ECR_URI:latest" .
-docker push "$ECR_URI:latest"
-
-# Tell AgentCore to pick up the new image
-python3 -c "
-import boto3
-client = boto3.client('bedrock-agentcore-control', region_name='<region>')
-client.update_agent_runtime(agentRuntimeId='<runtime-id>')
-"
-```
-
-The runtime ID is available in `cdk-outputs.json` under the `RuntimeId` key.
-
-> **Note**: Pushing a new image with the same `:latest` tag does NOT automatically update the running AgentCore Runtime. You must call `update_agent_runtime` to trigger a new version deployment. The DEFAULT endpoint automatically points to the latest version once the update completes.
+> **Note**: Pushing a new image with the same `:latest` tag does NOT automatically update the running AgentCore Runtime. You must use `--auto-update-hosting` or manually call `update_agent_runtime` to trigger a new version deployment. The DEFAULT endpoint automatically points to the latest version once the update completes.
 
 ## Sales Agent CLI
 
