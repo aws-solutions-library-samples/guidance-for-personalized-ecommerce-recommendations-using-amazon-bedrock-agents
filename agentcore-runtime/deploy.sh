@@ -169,7 +169,7 @@ echo "Deploying ${STACK_NAME}..."
 echo "  Environment: $ENV_NAME"
 echo "  AOSS Endpoint: $AOSS_ENDPOINT"
 if ! cdk deploy "$STACK_NAME" \
-    --app "python3 cdk/app.py" \
+    --app "uv run python3 cdk/app.py" \
     --outputs-file "$OUTPUTS_FILE" \
     --require-approval never \
     $CDK_CONTEXT_ARGS \
