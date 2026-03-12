@@ -160,14 +160,35 @@ done
 echo ""
 if [[ "$AUTO_UPDATE_HOSTING" == "true" ]]; then
     echo "Updating AgentCore Runtime hosting..."
-    python3 -c "
-import boto3, sys
-session = boto3.Session($(if [[ -n "$PROFILE" ]]; then echo "profile_name='$PROFILE',"; fi) $(if [[ -n "$REGION" ]]; then echo "region_name='$REGION'"; fi))
+    python3 << PYEOF
+import boto3, json
+
+session = boto3.Session(
+    ${PROFILE:+profile_name='$PROFILE',}
+    ${REGION:+region_name='$REGION'}
+)
 client = session.client('bedrock-agentcore-control')
-resp = client.update_agent_runtime(agentRuntimeId='$RUNTIME_ID')
-print(f'  ✅ Runtime update triggered (version: {resp.get(\"agentRuntimeVersion\", \"unknown\")})')
-print(f'  The DEFAULT endpoint will point to the new version once ready.')
-"
+
+# Fetch current runtime config
+runtime = client.get_agent_runtime(agentRuntimeId='$RUNTIME_ID')
+
+# Build update params from current config
+update_params = {
+    'agentRuntimeId': '$RUNTIME_ID',
+    'agentRuntimeArtifact': runtime['agentRuntimeArtifact'],
+    'roleArn': runtime['roleArn'],
+    'networkConfiguration': runtime['networkConfiguration'],
+}
+
+# Pass through optional fields if present
+for key in ('environmentVariables', 'protocolConfiguration', 'description'):
+    if key in runtime and runtime[key]:
+        update_params[key] = runtime[key]
+
+resp = client.update_agent_runtime(**update_params)
+print(f"  ✅ Runtime update triggered (version: {resp.get('agentRuntimeVersion', 'unknown')})")
+print(f"  The DEFAULT endpoint will point to the new version once ready.")
+PYEOF
 else
     echo "========================================="
     echo "  ⚠️  Image built and pushed, but hosting was NOT updated."
@@ -175,12 +196,7 @@ else
     echo "  The new image is in ECR but AgentCore is still running the old version."
     echo "  To update hosting, run:"
     echo ""
-    echo "    python3 -c \""
-    echo "import boto3"
-    echo "session = boto3.Session($(if [[ -n "$PROFILE" ]]; then echo "profile_name='$PROFILE', "; fi)$(if [[ -n "$REGION" ]]; then echo "region_name='$REGION'"; fi))"
-    echo "client = session.client('bedrock-agentcore-control')"
-    echo "client.update_agent_runtime(agentRuntimeId='$RUNTIME_ID')"
-    echo "\""
+    echo "    ./update_runtime.sh --stack-name $STACK_NAME --auto-update-hosting $AWS_ARGS"
     echo "========================================="
 fi
 
