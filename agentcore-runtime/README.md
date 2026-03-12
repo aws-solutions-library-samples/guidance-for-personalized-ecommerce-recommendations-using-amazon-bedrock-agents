@@ -32,26 +32,6 @@ cp .env.example .env
 # Edit .env with your values (see Environment Variables below)
 ```
 
-## Local Development
-
-Install the AgentCore starter toolkit (provides the `agentcore` CLI):
-
-```bash
-uv pip install bedrock-agentcore-starter-toolkit
-```
-
-Start the agent locally with the AgentCore dev server:
-
-```bash
-uv run agentcore dev
-```
-
-Invoke the agent with a test prompt (in a separate terminal):
-
-```bash
-uv run agentcore invoke --dev '{"prompt": "search for red shoes"}'
-```
-
 ## Deployment
 
 The `deploy.sh` script wraps `cdk deploy` to provision the full stack in a single command.
