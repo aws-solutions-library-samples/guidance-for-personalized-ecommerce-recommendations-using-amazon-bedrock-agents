@@ -9,6 +9,8 @@ from tools import search_product, compare_product, get_recommendation
 from config import Config
 from memory import MemoryClient
 
+VERSION = '0.1'
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
