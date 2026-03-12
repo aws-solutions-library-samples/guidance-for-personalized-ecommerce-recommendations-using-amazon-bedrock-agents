@@ -330,3 +330,11 @@ class AgentCoreStack(Stack):
             value=codebuild_project.project_name,
             description="CodeBuild project name for image builds",
         )
+
+        CfnOutput(
+            self,
+            "MemoryId",
+            value=effective_memory_id,
+            description="Memory resource ID",
+        )
+
