@@ -210,15 +210,22 @@ if [[ -z "$AOSS_DATA_POLICY_NAME" ]]; then
 import boto3, json
 session = boto3.Session()
 client = session.client('opensearchserverless')
+# Resolve collection ID to collection name
+cols = client.batch_get_collection(ids=['${AOSS_ENDPOINT}'])
+col_name = cols['collectionDetails'][0]['name'] if cols.get('collectionDetails') else None
+if not col_name:
+    raise SystemExit(1)
+# Search data access policies for one referencing this collection name
 resp = client.list_access_policies(type='data', maxResults=100)
 for p in resp.get('accessPolicySummaries', []):
     detail = client.get_access_policy(type='data', name=p['name'])
-    body = json.loads(detail['accessPolicyDetail']['policy']) if isinstance(detail['accessPolicyDetail']['policy'], str) else detail['accessPolicyDetail']['policy']
+    policy = detail['accessPolicyDetail']['policy']
+    body = json.loads(policy) if isinstance(policy, str) else policy
     rules = body if isinstance(body, list) else [body]
     for rule in rules:
-        for res in rule.get('Rules', rule.get('rules', [])):
-            for col in res.get('Resource', res.get('resource', [])):
-                if '${AOSS_ENDPOINT}' in col:
+        for res in rule.get('Rules', []):
+            for r in res.get('Resource', []):
+                if col_name in r:
                     print(p['name'])
                     raise SystemExit(0)
 " 2>/dev/null) || true
