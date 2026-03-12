@@ -27,10 +27,12 @@ You also need an AWS account with access to:
 
 ```bash
 cd agentcore-runtime
-uv sync
+uv sync --extra cdk --extra dev
 cp .env.example .env
 # Edit .env with your values (see Environment Variables below)
 ```
+
+This installs all dependencies including CDK (for deployment) and dev tools (for testing).
 
 ## Deployment
 
