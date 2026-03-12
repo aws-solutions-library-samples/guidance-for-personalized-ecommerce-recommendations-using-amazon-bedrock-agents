@@ -34,16 +34,22 @@ cp .env.example .env
 
 ## Local Development
 
+Install the AgentCore starter toolkit (provides the `agentcore` CLI):
+
+```bash
+pip install bedrock-agentcore-starter-toolkit
+```
+
 Start the agent locally with the AgentCore dev server:
 
 ```bash
-bedrock-agentcore dev
+agentcore dev
 ```
 
-Invoke the agent with a test prompt:
+Invoke the agent with a test prompt (in a separate terminal):
 
 ```bash
-bedrock-agentcore invoke --dev '{"prompt": "search for red shoes"}'
+agentcore invoke --dev '{"prompt": "search for red shoes"}'
 ```
 
 ## Deployment
