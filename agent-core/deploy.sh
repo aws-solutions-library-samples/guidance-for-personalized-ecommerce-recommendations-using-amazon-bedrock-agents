@@ -8,6 +8,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 #   --aoss-endpoint <endpoint> \
 #   [--env <environment>] \
 #   [--memory-id <id>] \
+#   [--memory-mode create|external] \
 #   [--item-table <name>] \
 #   [--user-table <name>] \
 #   [--recommender-arn <arn>] \
@@ -22,6 +23,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 AOSS_ENDPOINT=""
 ENV_NAME="production"
 MEMORY_ID=""
+MEMORY_MODE=""
 ITEM_TABLE=""
 USER_TABLE=""
 RECOMMENDER_ARN=""
@@ -45,6 +47,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --memory-id)
             MEMORY_ID="$2"
+            shift 2
+            ;;
+        --memory-mode)
+            MEMORY_MODE="$2"
             shift 2
             ;;
         --item-table)
@@ -89,7 +95,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Error: Unknown argument '$1'"
-            echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--env <environment>] [--memory-id <id>] [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
+            echo "Usage: ./deploy.sh --aoss-endpoint <endpoint> [--env <environment>] [--memory-id <id>] [--memory-mode create|external] [--item-table <name>] [--user-table <name>] [--recommender-arn <arn>] [--network-mode PUBLIC|PRIVATE] [--subnets <ids>] [--security-groups <ids>] [--region <region>]"
             exit 1
             ;;
     esac
@@ -111,6 +117,21 @@ if [[ -z "$PROFILE" ]]; then
     exit 1
 fi
 
+# Resolve memory mode
+if [[ -n "$MEMORY_MODE" ]]; then
+    : # Use provided value
+elif [[ -n "$MEMORY_ID" ]]; then
+    MEMORY_MODE="external"
+else
+    MEMORY_MODE="create"
+fi
+
+# Validate memory mode + memory ID combination
+if [[ "$MEMORY_MODE" == "external" && -z "$MEMORY_ID" ]]; then
+    echo "Error: --memory-id is required when --memory-mode is 'external'"
+    exit 1
+fi
+
 # Export AWS_PROFILE early so all subprocesses (cdk, uv run, python3) inherit it
 export AWS_PROFILE="$PROFILE"
 
@@ -118,7 +139,7 @@ STACK_NAME="AgentCoreStack-${ENV_NAME}"
 OUTPUTS_FILE="cdk-outputs-${ENV_NAME}.json"
 
 # Build CDK context args
-CDK_CONTEXT_ARGS="--context aoss-endpoint=$AOSS_ENDPOINT --context env-name=$ENV_NAME"
+CDK_CONTEXT_ARGS="--context aoss-endpoint=$AOSS_ENDPOINT --context env-name=$ENV_NAME --context memory-mode=$MEMORY_MODE"
 
 if [[ -n "$MEMORY_ID" ]]; then
     CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS --context memory-id=$MEMORY_ID"
