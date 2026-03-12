@@ -1,1 +1,0 @@
-# CDK infrastructure package

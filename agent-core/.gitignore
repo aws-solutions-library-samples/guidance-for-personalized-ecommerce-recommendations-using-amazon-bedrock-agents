@@ -1,165 +1,20 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-test-output/
-**/test-output/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
+# Environment
 .env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+.venv/
 
-# Spyder project settings
-.spyderproject
-.spyproject
+# Python
+__pycache__/
+*.pyc
 
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# CDK asset staging directory
-.cdk.staging
+# CDK
 cdk.out/
-**/cdk.out/
-
-# AWS CDK Context
-cdk.context.json
-**/cdk.context.json
-
-# CDK Bootstrap
-cdk.context.json.bak
-*.assets.json
-*.template.json
-
-# CDK Cache
-.cdk.cache/
-
-# CDK Outputs
 cdk-outputs*.json
-**/cdk-outputs*.json
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Hypothesis test database
+.hypothesis/
 
-# OS
+# pytest
+.pytest_cache/
+
+# macOS
 .DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.bak
-*.orig
-
-# Demo/experimental code not for remote
-strands-nomcp-demo/

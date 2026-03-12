@@ -1,13 +1,8 @@
-# CDK Infrastructure Dependencies
-aws-cdk-lib>=2.100.0
-constructs>=10.0.0
-
-# CLI Dependencies
-boto3>=1.35.0
-click>=8.1.0
-requests>=2.31.0
-
-# Testing Dependencies
-pytest>=7.4.0
-pytest-cov>=4.1.0
-hypothesis>=6.92.0
+bedrock-agentcore
+strands-agents
+strands-agents-tools
+opensearch-py
+boto3
+requests-aws4auth
+click
+websockets

@@ -1,1 +1,1 @@
-"""CDK infrastructure package."""
+# CDK infrastructure package
