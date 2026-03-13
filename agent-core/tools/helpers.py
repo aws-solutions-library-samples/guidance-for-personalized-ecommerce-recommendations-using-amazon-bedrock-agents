@@ -72,9 +72,9 @@ def get_item_info(item_id: str, config: Config) -> dict | str:
         return {
             "item_id": str(item["ITEM_ID"]),
             "title": str(item["NAME"]),
-            "price": str(item["PRICE"]),
-            "style": str(item["STYLE"]),
-            "image": str(item["IMAGE"]),
+            #"price": str(item["PRICE"]),
+            #"style": str(item["STYLE"]),
+            #"image": str(item["IMAGE"]),
         }
     except Exception as exc:
         logger.error("Error fetching item %s: %s", item_id, exc)

@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 config = Config.load()
 
-
 @tool
 def search_product(condition: str) -> str:
     """Search for products based on a text condition describing customer requirements.
@@ -25,7 +24,7 @@ def search_product(condition: str) -> str:
         condition: Text description of what the customer is looking for.
 
     Returns:
-        JSON string with up to 5 matching products (item_id, score, image, price, style, description).
+        string with up to 5 matching products (item_id, score, image, price, style, description).
     """
     try:
         # Generate embedding for the search condition
@@ -40,12 +39,12 @@ def search_product(condition: str) -> str:
 
         # Execute KNN query
         query = {
-            "size": 5,
+            "size": 3,
             "query": {
                 "knn": {
                     "multimodal_vector": {
                         "vector": text_embedding,
-                        "k": 5,
+                        "k": 3,
                     }
                 }
             },
@@ -54,9 +53,9 @@ def search_product(condition: str) -> str:
                 "price",
                 "style",
                 "image_product_description",
-                "image_path",
             ],
         }
+
         response = client.search(
             body=query, index="product-search-multimodal-index"
         )
@@ -66,8 +65,6 @@ def search_product(condition: str) -> str:
         for hit in response["hits"]["hits"]:
             data = {
                 "item_id": hit["_source"]["item_id"],
-                "score": hit["_score"],
-                "image": hit["_source"]["image_path"],
                 "price": hit["_source"]["price"],
                 "style": hit["_source"]["style"],
                 "description": hit["_source"]["image_product_description"],
@@ -78,3 +75,4 @@ def search_product(condition: str) -> str:
     except Exception as exc:
         logger.error("Error searching products: %s", exc)
         return f"Error searching products: {exc}"
+
