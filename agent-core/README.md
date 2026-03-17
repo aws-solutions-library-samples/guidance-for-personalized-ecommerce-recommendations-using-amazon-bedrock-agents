@@ -3,7 +3,6 @@
 A conversational sales assistant built with the [Strands Agents SDK](https://github.com/strands-agents/sdk-python) and deployed on [Amazon Bedrock AgentCore Runtime](https://docs.aws.amazon.com/bedrock/latest/userguide/agentcore.html). The agent provides three capabilities:
 
 - **Product Search** — vector similarity search against OpenSearch Serverless using Titan embeddings
-- **Product Comparison** — compares products using user profile, purchase history, and preferences via Bedrock Claude
 - **Personalized Recommendations** — retrieves recommendations from Amazon Personalize enriched with user context
 
 The agent is packaged as an ARM64 Docker image, deployed via a CDK stack that provisions ECR, CodeBuild, SSM Parameter Store, a `CfnMemory` resource (optional), and a `CfnRuntime` resource.
