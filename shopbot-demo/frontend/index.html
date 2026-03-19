@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopBot 智能購物助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        /* 聊天消息动画 */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-item {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* 商品卡片悬停效果 */
+        .product-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 滚动条样式 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* 图片占位符 */
+        .image-placeholder {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        /* 标签样式 */
+        .tag-hot {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .tag-new {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .tag-recommend {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        /* 加载动画 */
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* 推荐问题chips */
+        .question-chip {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .question-chip:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+
+    <!-- 主容器 -->
+    <div class="h-full flex flex-col">
+
+        <!-- 顶部导航栏 -->
+        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <span class="text-white text-xl font-bold">🛒</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">ShopBot 智能購物</h1>
+                    <p class="text-xs text-gray-500">AI 驅動的購物助手</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-600">用戶ID: <span id="userId" class="font-mono text-purple-600">未登錄</span></span>
+                <button id="clearChat" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
+                    清空對話
+                </button>
+            </div>
+        </header>
+
+        <!-- 主內容區 -->
+        <main class="flex-1 flex overflow-hidden">
+
+            <!-- 左側：ShopBot 聊天區 -->
+            <div class="w-1/3 bg-white border-r border-gray-200 flex flex-col">
+
+                <!-- 聊天標題 -->
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+                    <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <span class="text-2xl">🤖</span>
+                        ShopBot 助手
+                    </h2>
+                    <p class="text-xs text-gray-600 mt-1">點擊商品，獲取智能推薦問題</p>
+                </div>
+
+                <!-- 推薦問題chips區域 -->
+                <div id="suggestedQuestionsArea" class="px-4 py-3 border-b border-gray-200 bg-gray-50 hidden">
+                    <p class="text-xs text-gray-600 mb-2">💡 您可能想問：</p>
+                    <div id="suggestedQuestions" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- 聊天消息區 -->
+                <div id="chatMessages" class="flex-1 overflow-y-auto custom-scrollbar px-4 py-6 space-y-4">
+                    <!-- 歡迎消息 -->
+                    <div class="message-item flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                            <span class="text-white text-sm">🤖</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 max-w-[80%]">
+                            <p class="text-sm text-gray-800">您好！我是 ShopBot 智能購物助手。點擊右側商品，我會為您生成相關問題，幫助您更好地了解商品。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 輸入框區域 -->
+                <div class="px-4 py-4 border-t border-gray-200 bg-white">
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            id="messageInput"
+                            placeholder="輸入您的問題..."
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        />
+                        <button
+                            id="sendButton"
+                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition font-medium text-sm"
+                        >
+                            發送
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：商品展示區 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar bg-gray-50">
+                <div class="p-6">
+
+                    <!-- 商品網格 -->
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">精選商品</h2>
+                        <p class="text-sm text-gray-600">點擊商品卡片，讓 ShopBot 為您推薦問題</p>
+                    </div>
+
+                    <div id="productsGrid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <!-- 商品卡片將通過 JS 動態載入 -->
+                        <div class="col-span-full text-center py-12">
+                            <div class="loading-dots justify-center">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <p class="text-gray-500 mt-4">載入商品中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>

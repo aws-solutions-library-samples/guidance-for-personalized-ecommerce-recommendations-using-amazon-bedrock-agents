@@ -1,0 +1,81 @@
+{
+  "products": [
+    {
+      "id": "prod_001",
+      "title": "Nike Air Force 1 男士運動鞋",
+      "category": "運動鞋",
+      "price": 799.00,
+      "original_price": 999.00,
+      "description": "經典空軍一號設計，真皮鞋面，Air 氣墊緩震，舒適透氣，適合日常穿搭和輕度運動。",
+      "features": ["真皮鞋面", "Air 氣墊", "防滑耐磨", "經典百搭"],
+      "colors": ["全白", "黑白", "灰白"],
+      "sizes": ["40", "41", "42", "43", "44", "45"],
+      "stock": 248,
+      "rating": 4.8,
+      "reviews_count": 3521,
+      "image_placeholder": "nike-shoes.jpeg",
+      "tags": ["熱銷", "經典"]
+    },
+    {
+      "id": "prod_002",
+      "title": "戴森 Supersonic 吹風機",
+      "category": "個護電器",
+      "price": 2990.00,
+      "original_price": 3190.00,
+      "description": "智能溫控技術，防止過熱損傷，強勁氣流快速吹乾，附帶多款磁吸風嘴，靜音設計。",
+      "features": ["智能溫控", "快速乾髮", "低噪音", "磁吸風嘴"],
+      "colors": ["櫻花粉", "普魯士藍", "鎳金色"],
+      "stock": 156,
+      "rating": 4.9,
+      "reviews_count": 2847,
+      "image_placeholder": "dyson-hairdryer.jpeg",
+      "tags": ["高端", "推薦"]
+    },
+    {
+      "id": "prod_003",
+      "title": "MUJI 無印良品陶瓷咖啡杯",
+      "category": "家居用品",
+      "price": 59.00,
+      "original_price": 79.00,
+      "description": "日本進口陶瓷材質，簡約設計，350ml 容量，適合咖啡、茶飲，可微波爐加熱，易清洗。",
+      "features": ["進口陶瓷", "簡約設計", "可微波", "350ml容量"],
+      "colors": ["純白", "米白", "灰色"],
+      "stock": 892,
+      "rating": 4.7,
+      "reviews_count": 1523,
+      "image_placeholder": "muji-cup.jpeg",
+      "tags": ["熱銷", "簡約"]
+    },
+    {
+      "id": "prod_004",
+      "title": "羊絨圍巾男女通用款",
+      "category": "服飾配件",
+      "price": 399.00,
+      "original_price": 599.00,
+      "description": "100% 羊絨材質，柔軟親膚，保暖透氣，30x180cm 尺寸，經典純色設計，秋冬必備。",
+      "features": ["100%羊絨", "柔軟保暖", "透氣舒適", "男女通用"],
+      "colors": ["駝色", "黑色", "灰色", "酒紅色"],
+      "stock": 467,
+      "rating": 4.8,
+      "reviews_count": 2134,
+      "image_placeholder": "cashmere-scarf.jpeg",
+      "tags": ["新品", "保暖"]
+    },
+    {
+      "id": "prod_005",
+      "title": "Apple iPhone 17 Pro Max",
+      "category": "智能手機",
+      "price": 9999.00,
+      "original_price": 10999.00,
+      "description": "A18 Pro 芯片，6.9英寸 ProMotion 顯示屏，4800萬像素主攝，鈦金屬邊框，支持衛星通信。",
+      "features": ["A18 Pro芯片", "4800萬像素", "鈦金屬", "衛星通信"],
+      "colors": ["原色鈦金屬", "黑色鈦金屬", "白色鈦金屬", "藍色鈦金屬"],
+      "storage": ["256GB", "512GB", "1TB"],
+      "stock": 89,
+      "rating": 4.9,
+      "reviews_count": 5642,
+      "image_placeholder": "iphone17.jpeg",
+      "tags": ["新品", "旗艦"]
+    }
+  ]
+}

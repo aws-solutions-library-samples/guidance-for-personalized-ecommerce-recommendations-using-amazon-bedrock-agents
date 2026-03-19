@@ -1,0 +1,108 @@
+{
+  "user_001": {
+    "id": "user_001",
+    "name": "張三",
+    "email": "zhangsan@example.com",
+    "cart": [],
+    "wishlist": [],
+    "purchase_history": [
+      {
+        "order_id": "ORDER_0001",
+        "items": [
+          {
+            "product_id": "P001",
+            "name": "Calpak 粉色旅行背包",
+            "price": 129.99,
+            "quantity": 8,
+            "subtotal": 1039.92
+          },
+          {
+            "product_id": "P004",
+            "name": "星巴克Pike Place咖啡豆",
+            "price": 15.99,
+            "quantity": 1,
+            "subtotal": 15.99
+          }
+        ],
+        "total_price": 1055.91,
+        "order_date": "2026-03-02T10:00:00Z",
+        "status": "completed"
+      },
+      {
+        "order_id": "ORDER_0002",
+        "items": [
+          {
+            "product_id": "prod_001",
+            "name": "Nike Air Force 1 男士運動鞋",
+            "price": 799.0,
+            "quantity": 6,
+            "subtotal": 4794.0
+          },
+          {
+            "product_id": "prod_003",
+            "name": "MUJI 無印良品陶瓷咖啡杯",
+            "price": 59.0,
+            "quantity": 2,
+            "subtotal": 118.0
+          },
+          {
+            "product_id": "prod_005",
+            "name": "Apple iPhone 17 Pro Max",
+            "price": 9999.0,
+            "quantity": 1,
+            "subtotal": 9999.0
+          }
+        ],
+        "total_price": 14911.0,
+        "order_date": "2026-03-02T10:00:00Z",
+        "status": "completed"
+      }
+    ],
+    "preferences": {
+      "favorite_brands": [
+        "Apple",
+        "Nike"
+      ],
+      "favorite_categories": [
+        "electronics",
+        "shoes"
+      ]
+    }
+  },
+  "user_002": {
+    "id": "user_002",
+    "name": "李四",
+    "email": "lisi@example.com",
+    "cart": [],
+    "wishlist": [],
+    "purchase_history": [],
+    "preferences": {
+      "favorite_brands": [
+        "Starbucks",
+        "Lululemon"
+      ],
+      "favorite_categories": [
+        "coffee",
+        "clothing"
+      ]
+    }
+  },
+  "user_003": {
+    "id": "user_003",
+    "name": "王五",
+    "email": "wangwu@example.com",
+    "cart": [],
+    "wishlist": [],
+    "purchase_history": [],
+    "preferences": {
+      "favorite_brands": [
+        "Sony",
+        "The North Face"
+      ],
+      "favorite_categories": [
+        "electronics",
+        "outdoor"
+      ]
+    }
+  }
+}
