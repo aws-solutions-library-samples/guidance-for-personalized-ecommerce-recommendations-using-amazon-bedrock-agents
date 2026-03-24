@@ -148,11 +148,13 @@ If deployment is successful, you should see CDK outputs of `SalesAgentStack.Bedr
 
 ## Running the Guidance
 
-1. Follow the [steps in WorkShop Studio](https://catalog.us-east-1.prod.workshops.aws/workshops/dc89cbd1-21ed-4d41-904b-69c95c296378/en-US/import-data) to import vector data to OpenSearch Serverless.
+1. Follow the [steps in WorkShop Studio](https://catalog.us-east-1.prod.workshops.aws/workshops/dc89cbd1-21ed-4d41-904b-69c95c296378/en-US/infrastructure-deployment) to setup CDK, data and prepare related resource.
 
-2. Follow the [steps in WorkShop Studio](https://catalog.us-east-1.prod.workshops.aws/workshops/dc89cbd1-21ed-4d41-904b-69c95c296378/en-US/personalize) to prepare the Personalize Recommender.
+2. Follow the [steps in WorkShop Studio](https://catalog.us-east-1.prod.workshops.aws/workshops/dc89cbd1-21ed-4d41-904b-69c95c296378/en-US/import-data) to import vector data to OpenSearch Serverless.
 
-3. Open the Bedrock Agent and test the following sample questions.
+3. Follow the [steps in WorkShop Studio](https://catalog.us-east-1.prod.workshops.aws/workshops/dc89cbd1-21ed-4d41-904b-69c95c296378/en-US/personalize) to prepare the Personalize Recommender.
+
+4. Open the Bedrock Agent and test the following sample questions.
 
 ```
 I'm user_id: 1: Could you recommend some Christmas gifts? (answer should include item_id)
