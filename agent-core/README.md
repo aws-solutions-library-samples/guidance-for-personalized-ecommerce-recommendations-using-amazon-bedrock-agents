@@ -7,6 +7,10 @@ A conversational sales assistant built with the [Strands Agents SDK](https://git
 
 The agent is packaged as an ARM64 Docker image, deployed via a CDK stack that provisions ECR, CodeBuild, SSM Parameter Store, a `CfnMemory` resource (optional), and a `CfnRuntime` resource.
 
+## Architecture
+![Image](../assets/images/Architecture1.png)
+An AWS Sales Agent built on Strands Agents and AgentCore orchestrates customer interactions, retrieves relevant knowledge, and delivers personalized recommendations in real time. It uses LLM reasoning to understand user intent, leverages vector search for contextual retrieval, and integrates with backend systems (e.g., S3, databases, recommendation engines) to provide accurate, data-driven responses. AgentCore ensures scalable orchestration, tool integration, and workflow management, enabling a reliable, production-ready sales assistant.
+
 ## Prerequisites
 
 | Tool | Version | Notes |
