@@ -5,7 +5,7 @@ import uuid
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
-from tools import search_product, compare_product, get_recommendation
+from tools import search_product, get_recommendation
 from config import Config
 from memory import MemoryClient
 
