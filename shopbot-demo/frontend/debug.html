@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopBot API 调试工具</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ec9b0;
+        }
+        .test-section {
+            background: #252526;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #3e3e42;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        .log {
+            background: #1e1e1e;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            border: 1px solid #3e3e42;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .log-entry.success { color: #4ec9b0; }
+        .log-entry.error { color: #f48771; }
+        .log-entry.info { color: #9cdcfe; }
+        .log-entry.warning { color: #dcdcaa; }
+        input {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            color: #d4d4d4;
+            padding: 8px;
+            width: 400px;
+            border-radius: 4px;
+        }
+        .status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status.online { background: #4ec9b0; }
+        .status.offline { background: #f48771; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 ShopBot API 调试工具</h1>
+
+        <!-- 服务状态 -->
+        <div class="test-section">
+            <h2>🔌 服务状态</h2>
+            <div id="status">
+                <span class="status offline"></span>
+                <span>检查中...</span>
+            </div>
+            <button onclick="checkHealth()">重新检查</button>
+        </div>
+
+        <!-- 流式 API 测试 -->
+        <div class="test-section">
+            <h2>💬 流式聊天 API 测试</h2>
+            <input type="text" id="testMessage" placeholder="输入测试消息" value="你好">
+            <button onclick="testStream()">发送测试消息</button>
+            <button onclick="clearLog()">清空日志</button>
+
+            <h3>📝 响应日志</h3>
+            <div id="streamLog" class="log"></div>
+        </div>
+
+        <!-- 商品 API 测试 -->
+        <div class="test-section">
+            <h2>📦 商品 API 测试</h2>
+            <button onclick="testProducts()">获取商品列表</button>
+            <button onclick="testQuestions('prod_001')">测试推荐问题 (prod_001)</button>
+
+            <h3>📝 响应日志</h3>
+            <div id="productsLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        function log(elementId, message, type = 'info') {
+            const logDiv = document.getElementById(elementId);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('streamLog').innerHTML = '';
+        }
+
+        async function checkHealth() {
+            const statusDiv = document.getElementById('status');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = '<span class="status online"></span><span>后端服务正常运行</span>';
+                    log('streamLog', '✅ 后端服务正常', 'success');
+                } else {
+                    statusDiv.innerHTML = '<span class="status offline"></span><span>后端服务异常</span>';
+                    log('streamLog', '❌ 后端服务异常', 'error');
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="status offline"></span><span>无法连接到后端</span>';
+                log('streamLog', `❌ 连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStream() {
+            const message = document.getElementById('testMessage').value;
+
+            log('streamLog', `📤 发送消息: "${message}"`, 'info');
+            log('streamLog', `📡 请求 URL: ${API_BASE}/chat/stream`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        user_id: 'debug_user',
+                        session_id: 'debug_session_' + Date.now()
+                    })
+                });
+
+                if (!response.ok) {
+                    log('streamLog', `❌ HTTP 错误: ${response.status} ${response.statusText}`, 'error');
+                    return;
+                }
+
+                log('streamLog', '✅ 连接成功，开始接收流式响应...', 'success');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let chunkCount = 0;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        log('streamLog', '✅ 流式响应结束', 'success');
+                        break;
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    buffer += chunk;
+                    chunkCount++;
+
+                    log('streamLog', `📨 收到数据块 #${chunkCount}: ${chunk.substring(0, 100)}${chunk.length > 100 ? '...' : ''}`, 'info');
+
+                    // 解析 SSE 数据
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || ''; // 保留不完整的行
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            try {
+                                const parsed = JSON.parse(data);
+                                log('streamLog', `✨ 解析成功: type=${parsed.type}, content=${JSON.stringify(parsed).substring(0, 100)}`, 'success');
+                            } catch (e) {
+                                log('streamLog', `⚠️  JSON 解析失败: ${data}`, 'warning');
+                            }
+                        }
+                    }
+                }
+
+                log('streamLog', `📊 统计: 共收到 ${chunkCount} 个数据块`, 'info');
+
+            } catch (error) {
+                log('streamLog', `❌ 错误: ${error.message}`, 'error');
+                console.error('详细错误:', error);
+            }
+        }
+
+        async function testProducts() {
+            log('productsLog', '📤 请求商品列表...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/products`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('productsLog', `✅ 成功获取 ${data.products.length} 个商品`, 'success');
+                    data.products.forEach(p => {
+                        log('productsLog', `  - ${p.id}: ${p.title}`, 'info');
+                    });
+                } else {
+                    log('productsLog', `❌ 请求失败: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('productsLog', `❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testQuestions(productId) {
+            log('productsLog', `📤 请求推荐问题: ${productId}`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/suggested-questions/${productId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('productsLog', `✅ 成功获取推荐问题`, 'success');
+                    log('productsLog', `  商品: ${data.product_title}`, 'info');
+                    data.questions.forEach((q, i) => {
+                        log('productsLog', `  ${i + 1}. ${q}`, 'info');
+                    });
+                } else {
+                    log('productsLog', `❌ 请求失败: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('productsLog', `❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时检查服务状态
+        window.onload = checkHealth;
+    </script>
+</body>
+</html>

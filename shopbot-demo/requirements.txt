@@ -1,0 +1,21 @@
+# LangChain 核心
+langchain>=0.3.0
+langchain-aws>=0.2.0
+langgraph>=0.2.0
+
+# 持久化
+langgraph-checkpoint-sqlite>=1.0.0
+aiosqlite>=0.19.0  # 异步 SQLite 支持
+
+# FastAPI
+fastapi>=0.115.0
+uvicorn>=0.30.0
+
+# 其他
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+tiktoken>=0.5.0  # Token 计数器（用于 context 压缩）
+
+# 观测和调试
+langfuse>=2.0.0  # LangFuse 观测平台
+schedule>=1.2.0  # 后台任务调度

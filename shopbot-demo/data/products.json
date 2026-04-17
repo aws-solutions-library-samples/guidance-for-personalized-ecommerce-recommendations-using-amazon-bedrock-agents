@@ -1,0 +1,122 @@
+[
+  {
+    "id": "P001",
+    "name": "Calpak 粉色旅行背包",
+    "brand": "Calpak",
+    "category": "bags",
+    "color": "pink",
+    "price": 129.99,
+    "rating": 4.7,
+    "description": "輕便耐用的旅行背包，多個收納袋，適合短途旅行",
+    "in_stock": true,
+    "features": ["防水", "多口袋", "可擴展"]
+  },
+  {
+    "id": "P002",
+    "name": "Samsonite 黑色商務拉桿箱",
+    "brand": "Samsonite",
+    "category": "luggage",
+    "color": "black",
+    "price": 249.99,
+    "rating": 4.8,
+    "description": "堅固耐用的商務拉桿箱，TSA 鎖，靜音輪子",
+    "in_stock": true,
+    "features": ["TSA鎖", "360度旋轉輪", "防刮外殼"]
+  },
+  {
+    "id": "P003",
+    "name": "Nike Air Max 運動鞋",
+    "brand": "Nike",
+    "category": "shoes",
+    "color": "white",
+    "price": 159.99,
+    "rating": 4.6,
+    "description": "經典氣墊運動鞋，舒適透氣，適合日常穿著和運動",
+    "in_stock": true,
+    "features": ["氣墊緩震", "透氣網面", "防滑底"]
+  },
+  {
+    "id": "P004",
+    "name": "星巴克Pike Place咖啡豆",
+    "brand": "Starbucks",
+    "category": "coffee",
+    "color": "brown",
+    "price": 15.99,
+    "rating": 4.5,
+    "description": "星巴克經典烘焙咖啡豆，口感順滑，適合日常飲用",
+    "in_stock": true,
+    "features": ["中度烘焙", "順滑口感", "340g裝"]
+  },
+  {
+    "id": "P005",
+    "name": "Apple AirPods Pro 2",
+    "brand": "Apple",
+    "category": "electronics",
+    "color": "white",
+    "price": 249.00,
+    "rating": 4.8,
+    "description": "主動降噪無線耳機，空間音頻，長續航",
+    "in_stock": true,
+    "features": ["主動降噪", "空間音頻", "無線充電"]
+  },
+  {
+    "id": "P006",
+    "name": "Lululemon 瑜伽褲",
+    "brand": "Lululemon",
+    "category": "clothing",
+    "color": "black",
+    "price": 98.00,
+    "rating": 4.7,
+    "description": "高腰彈力瑜伽褲，吸汗透氣，適合各種運動",
+    "in_stock": true,
+    "features": ["四向彈力", "吸汗快乾", "高腰設計"]
+  },
+  {
+    "id": "P007",
+    "name": "Sony WH-1000XM5 降噪耳機",
+    "brand": "Sony",
+    "category": "electronics",
+    "color": "black",
+    "price": 399.99,
+    "rating": 4.9,
+    "description": "業界領先的降噪耳機，30小時續航，高品質音質",
+    "in_stock": true,
+    "features": ["頂級降噪", "30小時續航", "LDAC高清音質"]
+  },
+  {
+    "id": "P008",
+    "name": "The North Face 衝鋒衣",
+    "brand": "The North Face",
+    "category": "clothing",
+    "color": "red",
+    "price": 189.99,
+    "rating": 4.6,
+    "description": "防風防水衝鋒衣，適合戶外登山徒步",
+    "in_stock": true,
+    "features": ["防風防水", "透氣", "多口袋"]
+  },
+  {
+    "id": "P009",
+    "name": "Kindle Paperwhite 電子書閱讀器",
+    "brand": "Amazon",
+    "category": "electronics",
+    "color": "black",
+    "price": 139.99,
+    "rating": 4.7,
+    "description": "防水電子書閱讀器，6.8英寸顯示屏，長續航",
+    "in_stock": true,
+    "features": ["防水", "背光可調", "8GB存儲"]
+  },
+  {
+    "id": "P010",
+    "name": "Adidas Ultraboost 跑鞋",
+    "brand": "Adidas",
+    "category": "shoes",
+    "color": "blue",
+    "price": 179.99,
+    "rating": 4.8,
+    "description": "頂級跑步鞋，Boost緩震科技，舒適透氣",
+    "in_stock": true,
+    "features": ["Boost緩震", "Primeknit鞋面", "大底防滑"]
+  }
+]
